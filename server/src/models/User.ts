@@ -2,10 +2,20 @@
 import mongoose, { Schema, Document } from 'mongoose';
 import bcrypt from 'bcryptjs';
 
+interface IUserPreferences {
+  currency: string;
+  theme: string;
+  notifications: boolean;
+}
+
 export interface IUser extends Document {
   name: string;
   email: string;
   password: string;
+  preferences: IUserPreferences;
+  lastLogin: Date;
+  createdAt: Date;
+  updatedAt: Date;
   matchPassword(enteredPassword: string): Promise<boolean>;
 }
 
@@ -26,6 +36,24 @@ const UserSchema: Schema = new Schema(
       required: true,
       minlength: 6,
     },
+    preferences: {
+      currency: {
+        type: String,
+        default: 'USD',
+      },
+      theme: {
+        type: String,
+        default: 'light',
+      },
+      notifications: {
+        type: Boolean,
+        default: true,
+      }
+    },
+    lastLogin: {
+      type: Date,
+      default: Date.now,
+    }
   },
   { timestamps: true }
 );

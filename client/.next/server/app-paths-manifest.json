@@ -1,3 +1,5 @@
 {
-  "/page": "app/page.js"
+  "/add-transaction/page": "app/add-transaction/page.js",
+  "/page": "app/page.js",
+  "/register/page": "app/register/page.js"
 }

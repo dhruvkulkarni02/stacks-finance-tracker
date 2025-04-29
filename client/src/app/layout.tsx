@@ -4,7 +4,7 @@
 import './globals.css';
 import { Inter } from 'next/font/google';
 import Navbar from '@/components/Navbar';
-import Sidebar from '@/components//Sidebar';
+import Sidebar from '@/components/Sidebar';
 import { AuthProvider } from '@/context/AuthContext';
 import { usePathname } from 'next/navigation';
 import { ReactNode } from 'react';

@@ -12,7 +12,7 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
   useEffect(() => {
     if (!loading && !user) {
       // Force redirect to login
-      window.location.href = '/login';
+      router.push('/login');
     }
   }, [user, loading, router]);
 

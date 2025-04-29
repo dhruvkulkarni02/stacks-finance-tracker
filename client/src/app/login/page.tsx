@@ -1,175 +1,126 @@
-// client/src/app/page.tsx
+// src/app/login/page.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
-import { format } from 'date-fns';
-import { useSearchParams } from 'next/navigation';
-import ProtectedRoute from '@/components/auth/ProtectedRoute';
-import TransactionList from '@/components/transactions/TransactionList';
-import { getSummary, getTransactions } from '@/lib/api';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { useAuth } from '@/context/AuthContext';
 
-interface Summary {
-  income: number;
-  expenses: number;
-  balance: number;
-}
+export default function LoginPage() {
+  const router = useRouter();
+  const { user, login, loading } = useAuth();
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formError, setFormError] = useState('');
+  
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      router.push('/');
+    }
+  }, [user, router]);
 
-interface Transaction {
-  _id: string;
-  userId: string;
-  type: 'income' | 'expense';
-  amount: number;
-  category: string;
-  date: string;
-  note?: string;
-}
-
-
-
-export default function Home() {
-  const searchParams = useSearchParams();
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [summary, setSummary] = useState<Summary>({ income: 0, expenses: 0, balance: 0 });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [currentMonth, setCurrentMonth] = useState(format(new Date(), 'yyyy-MM'));
-  const [refreshKey, setRefreshKey] = useState(0);
-
-  // Function to manually refresh data
-  const refreshData = () => {
-    setRefreshKey(prev => prev + 1);
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  // Check for refresh parameter in URL
-  useEffect(() => {
-    const shouldRefresh = searchParams.get('refresh');
-    if (shouldRefresh === 'true') {
-      refreshData();
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      setIsSubmitting(true);
+      setFormError('');
+      
+      await login(formData.email, formData.password);
+      
+      // Redirect to dashboard on successful login
+      router.push('/');
+    } catch (error) {
+      setFormError(error instanceof Error ? error.message : 'Login failed');
+    } finally {
+      setIsSubmitting(false);
     }
-  }, [searchParams]);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        
-        console.log('Fetching data for month:', currentMonth);
-        
-        // Fetch data in parallel
-        const [transactionsResponse, summaryResponse] = await Promise.all([
-          getTransactions(currentMonth),
-          getSummary(currentMonth)
-        ]);
-        
-        console.log('Transactions loaded:', transactionsResponse.length);
-        setTransactions(transactionsResponse);
-        setSummary(summaryResponse);
-      } catch (err) {
-        console.error('Error fetching dashboard data:', err);
-        setError('Failed to load data. Please try again.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [currentMonth, refreshKey]);
-
-  // Change month handler
-  const handleMonthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setCurrentMonth(e.target.value);
   };
 
-  const DashboardContent = () => {
-    if (loading) {
-      return (
-        <div className="container mx-auto p-4">
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-          </div>
-        </div>
-      );
-    }
-
-    if (error) {
-      return (
-        <div className="container mx-auto p-4">
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-            {error}
-          </div>
-          <button 
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-            onClick={() => window.location.reload()}
-          >
-            Try Again
-          </button>
-        </div>
-      );
-    }
-
+  if (loading) {
     return (
-      <div className="container mx-auto">
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h1 className="text-2xl font-bold mb-2">Stacks Finance Tracker</h1>
-            <p className="text-gray-600">Your personal finance tracking dashboard</p>
-          </div>
-          
-          <div className="flex items-center space-x-4">
-            <div>
-              <label htmlFor="month-select" className="mr-2 text-gray-700">Month:</label>
-              <input
-                type="month"
-                id="month-select"
-                value={currentMonth}
-                onChange={handleMonthChange}
-                className="border rounded p-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-            
-            <button 
-              onClick={refreshData}
-              className="bg-blue-100 text-blue-700 px-3 py-2 rounded hover:bg-blue-200"
-            >
-              ↻ Refresh
-            </button>
-          </div>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h2 className="text-xl font-semibold text-gray-700 mb-2">Balance</h2>
-            <p className={`text-3xl font-bold ${summary.balance >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
-              ${summary.balance.toFixed(2)}
-            </p>
-          </div>
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h2 className="text-xl font-semibold text-gray-700 mb-2">Income</h2>
-            <p className="text-3xl font-bold text-green-600">${summary.income.toFixed(2)}</p>
-          </div>
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h2 className="text-xl font-semibold text-gray-700 mb-2">Expenses</h2>
-            <p className="text-3xl font-bold text-red-600">${summary.expenses.toFixed(2)}</p>
-          </div>
-        </div>
-        
-        <div className="bg-white p-6 rounded-lg shadow mb-6">
-          <h2 className="text-xl font-semibold text-gray-700 mb-4">Recent Transactions</h2>
-          {transactions.length > 0 ? (
-            <TransactionList transactions={transactions} />
-          ) : (
-            <div className="text-center py-8 text-gray-500">
-              No transactions found for this month. Add your first transaction to get started!
-            </div>
-          )}
-        </div>
+      <div className="flex justify-center items-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
       </div>
     );
-  };
+  }
 
   return (
-    <ProtectedRoute>
-      <DashboardContent />
-    </ProtectedRoute>
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="w-full max-w-md space-y-8">
+        <div>
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            Sign in to your account
+          </h2>
+        </div>
+        
+        {formError && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+            {formError}
+          </div>
+        )}
+        
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+          <div className="rounded-md shadow-sm -space-y-px">
+            <div>
+              <label htmlFor="email" className="sr-only">Email address</label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+                value={formData.email}
+                onChange={handleChange}
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                placeholder="Email address"
+              />
+            </div>
+            <div>
+              <label htmlFor="password" className="sr-only">Password</label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                autoComplete="current-password"
+                required
+                value={formData.password}
+                onChange={handleChange}
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                placeholder="Password"
+              />
+            </div>
+          </div>
+
+          <div>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+            >
+              {isSubmitting ? 'Signing in...' : 'Sign in'}
+            </button>
+          </div>
+          
+          <div className="text-sm text-center">
+            <p>
+              Don't have an account? {' '}
+              <Link href="/register" className="font-medium text-blue-600 hover:text-blue-500">
+                Register here
+              </Link>
+            </p>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 }

@@ -1,10 +1,12 @@
-// client/src/lib/api.ts
-// Add token handling to axios instance
+// src/lib/api.ts
 import axios from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api';
+// Get the API URL from environment variables
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
-// Create axios instance
+console.log('Using API URL:', API_URL);
+
+// Create an axios instance
 const api = axios.create({
   baseURL: API_URL,
   headers: {
@@ -16,11 +18,13 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     // Get token from localStorage
-    const user = localStorage.getItem('user');
-    
-    if (user) {
-      const parsedUser = JSON.parse(user);
-      config.headers.Authorization = `Bearer ${parsedUser.token}`;
+    if (typeof window !== 'undefined') {
+      const user = localStorage.getItem('user');
+      
+      if (user) {
+        const parsedUser = JSON.parse(user);
+        config.headers.Authorization = `Bearer ${parsedUser.token}`;
+      }
     }
     
     return config;
@@ -31,25 +35,27 @@ api.interceptors.request.use(
 );
 
 // Transactions API
-export const getTransactions = async (userId: string, month?: string) => {
+export const getTransactions = async (month?: string) => {
   try {
-    const url = `/transactions?user=${userId}${month ? `&month=${month}` : ''}`;
+    const url = `/transactions${month ? `?month=${month}` : ''}`;
     console.log('Fetching transactions from:', url);
     
-    const response = await api.get(url);
-    console.log('Transaction response data:', response.data);
+    const response = await api.get(url, { 
+      timeout: 10000 // Increase timeout to 10 seconds
+    });
     
+    console.log('Transaction response data:', response.data);
     return response.data;
   } catch (error) {
     console.error('Error fetching transactions:', error);
-    throw error;
+    // Return empty array instead of throwing to handle gracefully
+    return [];
   }
 };
 
 export const createTransaction = async (transaction: any) => {
   try {
     console.log('API call to create transaction:', transaction);
-    console.log('Endpoint:', `${API_URL}/transactions`);
     
     const response = await api.post('/transactions', transaction);
     console.log('Transaction created successfully:', response.data);
@@ -61,29 +67,32 @@ export const createTransaction = async (transaction: any) => {
 };
 
 // Summary API
-export const getSummary = async (userId: string, month?: string) => {
+export const getSummary = async (month?: string) => {
   try {
-    const url = `/summary?user=${userId}${month ? `&month=${month}` : ''}`;
+    const url = `/summary${month ? `?month=${month}` : ''}`;
     console.log('Fetching summary from:', url);
     
-    const response = await api.get(url);
-    console.log('Summary response data:', response.data);
+    const response = await api.get(url, {
+      timeout: 10000 // Increase timeout to 10 seconds
+    });
     
+    console.log('Summary response data:', response.data);
     return response.data;
   } catch (error) {
     console.error('Error fetching summary:', error);
-    throw error;
+    // Return default summary instead of throwing
+    return { income: 0, expenses: 0, balance: 0 };
   }
 };
 
 // Goals API
-export const getGoals = async (userId: string) => {
+export const getGoals = async () => {
   try {
-    const response = await api.get(`/goals?user=${userId}`);
+    const response = await api.get(`/goals`);
     return response.data;
   } catch (error) {
     console.error('Error fetching goals:', error);
-    throw error;
+    return [];
   }
 };
 

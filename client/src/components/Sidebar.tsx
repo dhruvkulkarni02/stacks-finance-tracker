@@ -2,12 +2,11 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const router = useRouter();
   const { logout } = useAuth();
   
   const navItems = [
@@ -16,11 +15,10 @@ export default function Sidebar() {
     { name: 'Settings', path: '/settings', icon: '⚙️' }
   ];
   
-const handleLogout = () => {
-  console.log("Logging out from sidebar");
-  logout();
-  window.location.href = '/register'; // Force redirect to register page
-};
+  const handleLogout = () => {
+    console.log("Logging out from sidebar");
+    logout();
+  };
   
   return (
     <div className="w-64 bg-white shadow-md min-h-screen p-4 flex flex-col">

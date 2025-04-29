@@ -45,13 +45,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     console.log("Initializing auth state");
     const initAuth = () => {
       try {
-        const storedUser = localStorage.getItem('user');
-        
-        if (storedUser) {
-          console.log("Found stored user");
-          setUser(JSON.parse(storedUser));
-        } else {
-          console.log("No stored user found");
+        if (typeof window !== 'undefined') {
+          const storedUser = localStorage.getItem('user');
+          
+          if (storedUser) {
+            console.log("Found stored user");
+            setUser(JSON.parse(storedUser));
+          } else {
+            console.log("No stored user found");
+          }
         }
       } catch (err) {
         console.error("Error loading user from localStorage", err);
@@ -130,6 +132,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Remove user from state
     setUser(null);
     
+    // Force redirect to login page
+    if (typeof window !== 'undefined') {
+      window.location.href = '/login';
+    }
     console.log("User logged out, redirecting...");
   };
 

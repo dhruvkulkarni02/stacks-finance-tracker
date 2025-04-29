@@ -3,11 +3,11 @@
 
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
-import { useSearchParams } from 'next/navigation';
-import TransactionList from '../components/transactions/TransactionList';
-import { getSummary, getTransactions } from '../lib/api';
+import { useSearchParams, useRouter } from 'next/navigation';
+import TransactionList from '@/components/transactions/TransactionList';
+import { getSummary, getTransactions } from '@/lib/api';
+import { useAuth } from '@/context/AuthContext';
 
-// Define types
 interface Summary {
   income: number;
   expenses: number;
@@ -26,12 +26,21 @@ interface Transaction {
 
 export default function Home() {
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const { user, loading } = useAuth();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [summary, setSummary] = useState<Summary>({ income: 0, expenses: 0, balance: 0 });
-  const [loading, setLoading] = useState(true);
+  const [fetchLoading, setFetchLoading] = useState(true);
   const [error, setError] = useState('');
   const [currentMonth, setCurrentMonth] = useState(format(new Date(), 'yyyy-MM'));
-  const [refreshKey, setRefreshKey] = useState(0); // Add a refresh key
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  // Redirect if not authenticated
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/login');
+    }
+  }, [user, loading, router]);
 
   // Function to manually refresh data
   const refreshData = () => {
@@ -48,18 +57,18 @@ export default function Home() {
 
   useEffect(() => {
     const fetchData = async () => {
+      // Don't fetch if not authenticated
+      if (!user) return;
+      
       try {
-        setLoading(true);
-        
-        // Get user ID from env
-        const userId = process.env.NEXT_PUBLIC_MOCK_USER_ID || 'user123';
+        setFetchLoading(true);
         
         console.log('Fetching data for month:', currentMonth);
         
         // Fetch data in parallel
         const [transactionsResponse, summaryResponse] = await Promise.all([
-          getTransactions(userId, currentMonth),
-          getSummary(userId, currentMonth)
+          getTransactions(currentMonth),
+          getSummary(currentMonth)
         ]);
         
         console.log('Transactions loaded:', transactionsResponse.length);
@@ -69,19 +78,34 @@ export default function Home() {
         console.error('Error fetching dashboard data:', err);
         setError('Failed to load data. Please try again.');
       } finally {
-        setLoading(false);
+        setFetchLoading(false);
       }
     };
 
     fetchData();
-  }, [currentMonth, refreshKey]); // Add refreshKey to dependency array
+  }, [currentMonth, refreshKey, user]);
 
   // Change month handler
   const handleMonthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setCurrentMonth(e.target.value);
   };
 
+  // If not authenticated or loading auth state, show loading
   if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  // If not authenticated after loading, show nothing (redirect happens in useEffect)
+  if (!user) {
+    return null;
+  }
+
+  // Loading transactions data
+  if (fetchLoading) {
     return (
       <div className="container mx-auto p-4">
         <div className="flex justify-center items-center h-64">
@@ -91,6 +115,7 @@ export default function Home() {
     );
   }
 
+  // Error fetching data
   if (error) {
     return (
       <div className="container mx-auto p-4">
@@ -99,7 +124,7 @@ export default function Home() {
         </div>
         <button 
           className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-          onClick={() => window.location.reload()}
+          onClick={() => refreshData()}
         >
           Try Again
         </button>
@@ -127,7 +152,6 @@ export default function Home() {
             />
           </div>
           
-          {/* Add refresh button */}
           <button 
             onClick={refreshData}
             className="bg-blue-100 text-blue-700 px-3 py-2 rounded hover:bg-blue-200"
@@ -135,12 +159,6 @@ export default function Home() {
             ↻ Refresh
           </button>
         </div>
-      </div>
-      
-      {/* Debug information */}
-      <div className="bg-gray-100 p-2 mb-4 rounded text-xs">
-        <p>Current month filter: {currentMonth}</p>
-        <p>Transactions loaded: {transactions.length}</p>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">

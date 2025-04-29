@@ -15,15 +15,18 @@ const generateToken = (id: string) => {
 export const registerUser = async (req: Request, res: Response) => {
   try {
     const { name, email, password } = req.body;
+    console.log("Registration attempt for:", email);
 
     // Add validation for required fields
     if (!name || !email || !password) {
+      console.log("Missing required fields");
       return res.status(400).json({ message: 'Please provide all required fields' });
     }
 
     // Check if user already exists
     const userExists = await User.findOne({ email });
     if (userExists) {
+      console.log("User already exists");
       return res.status(400).json({ message: 'User already exists' });
     }
 
@@ -42,6 +45,7 @@ export const registerUser = async (req: Request, res: Response) => {
     });
 
     if (user) {
+      console.log("User created successfully:", user.name);
       res.status(201).json({
         _id: user._id,
         name: user.name,
@@ -49,12 +53,15 @@ export const registerUser = async (req: Request, res: Response) => {
         token: generateToken(user._id),
       });
     } else {
+      console.log("Invalid user data");
       res.status(400).json({ message: 'Invalid user data' });
     }
   } catch (error) {
+    console.error('Registration error:', error);
     res.status(500).json({ 
       message: 'Error registering user',
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.stack : '') : undefined
     });
   }
 };
@@ -64,9 +71,12 @@ export const registerUser = async (req: Request, res: Response) => {
 export const loginUser = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
+    
+    console.log("Login attempt for:", email);
 
     // Find user by email
     const user = await User.findOne({ email });
+    console.log("User found:", user ? "Yes" : "No");
     
     // Check if user exists and password matches
     if (user && (await user.matchPassword(password))) {
@@ -74,20 +84,25 @@ export const loginUser = async (req: Request, res: Response) => {
       user.lastLogin = new Date();
       await user.save();
       
+      const token = generateToken(user._id);
+      console.log("Token generated successfully");
+      
       res.json({
         _id: user._id,
         name: user.name,
         email: user.email,
-        preferences: user.preferences,
-        token: generateToken(user._id),
+        token: token,
       });
     } else {
+      console.log("Invalid credentials");
       res.status(401).json({ message: 'Invalid email or password' });
     }
   } catch (error) {
+    console.error('Login error:', error);
     res.status(500).json({ 
       message: 'Error logging in',
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.stack : '') : undefined
     });
   }
 };
@@ -111,9 +126,11 @@ export const getUserProfile = async (req: Request, res: Response) => {
       res.status(404).json({ message: 'User not found' });
     }
   } catch (error) {
+    console.error('Get profile error:', error);
     res.status(500).json({ 
       message: 'Error fetching user profile',
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.stack : '') : undefined
     });
   }
 };
@@ -154,9 +171,11 @@ export const updateUserProfile = async (req: Request, res: Response) => {
       res.status(404).json({ message: 'User not found' });
     }
   } catch (error) {
+    console.error('Update profile error:', error);
     res.status(500).json({ 
       message: 'Error updating user profile',
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.stack : '') : undefined
     });
   }
 };

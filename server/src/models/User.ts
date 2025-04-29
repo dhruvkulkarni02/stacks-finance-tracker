@@ -64,14 +64,29 @@ UserSchema.pre<IUser>('save', async function (next) {
     return next();
   }
   
-  const salt = await bcrypt.genSalt(10);
-  this.password = await bcrypt.hash(this.password, salt);
-  next();
+  try {
+    console.log("Hashing password");
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+    console.log("Password hashed successfully");
+    next();
+  } catch (error) {
+    console.error("Error hashing password:", error);
+    next(error as Error);
+  }
 });
 
 // Method to check if entered password matches
 UserSchema.methods.matchPassword = async function (enteredPassword: string): Promise<boolean> {
-  return await bcrypt.compare(enteredPassword, this.password);
+  try {
+    console.log("Checking password match");
+    const isMatch = await bcrypt.compare(enteredPassword, this.password);
+    console.log("Password match:", isMatch);
+    return isMatch;
+  } catch (error) {
+    console.error("Error comparing passwords:", error);
+    return false;
+  }
 };
 
 export default mongoose.model<IUser>('User', UserSchema);

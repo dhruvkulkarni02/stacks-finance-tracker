@@ -1,0 +1,51 @@
+# Node modules
+node_modules/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Build output
+.next/
+out/
+dist/
+build/
+
+# Optional npm cache directory
+.npm/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+
+# Mac system files
+.DS_Store
+
+# Coverage directory used by tools like istanbul
+coverage/
+
+# Binaries
+*.node
+
+# Optional
+client/node_modules/
+client-old/node_modules/

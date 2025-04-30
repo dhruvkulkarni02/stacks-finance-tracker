@@ -69,7 +69,7 @@ export default function SettingsPage() {
   }
   
   return (
-    <div className="container mx-auto max-w-2xl bg-gray-100 p-6 rounded-lg shadow-lg">
+    <div className="container mx-auto max-w-2xl bg-gray-100 p-8 rounded-lg shadow-lg">
       <h1 className="text-3xl font-bold text-center mb-8 text-gray-900">Account Settings</h1>
       
       {saveMessage && (
@@ -82,22 +82,22 @@ export default function SettingsPage() {
         </div>
       )}
       
-      <div className="p-4 border-b shadow-sm rounded-md bg-white mb-2">
+      <div className="p-6 border-b shadow-sm rounded-md bg-white mb-4">
         {/* Profile Section */}
         <h2 className="text-lg font-semibold mb-4 text-gray-800">Profile</h2>
         
         <div className="mb-4">
-          <p className="text-black-600 text-sm mb-1">Name</p>
-          <p className="font-medium">{user.name}</p>
+          <p className="text-gray-800 font-semibold text-sm mb-1">Name</p>
+          <p className="font-medium text-gray-900">{user.name}</p>
         </div>
         
         <div className="mb-4">
-          <p className="text-gray-600 text-sm mb-1">Email</p>
-          <p className="font-medium">{user.email}</p>
+          <p className="text-gray-800 font-semibold text-sm mb-1">Email</p>
+          <p className="font-medium text-gray-900">{user.email}</p>
         </div>
       </div>
       
-      <div className="p-4 border-b shadow-sm rounded-md bg-white mb-2">
+      <div className="p-6 border-b shadow-sm rounded-md bg-white mb-4">
         {/* Preferences Section */}
         <h2 className="text-lg font-semibold mb-4 text-gray-800">Preferences</h2>
         
@@ -154,13 +154,13 @@ export default function SettingsPage() {
         </div>
       </div>
       
-      <div className="p-4 border-b shadow-sm rounded-md bg-white mb-2">
+      <div className="p-6 border-b shadow-sm rounded-md bg-white mb-4">
         {/* Data & Privacy Section */}
         <h2 className="text-lg font-semibold mb-4 text-gray-800">Data & Privacy</h2>
         
         <button
           type="button"
-          className="w-full bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-md my-1"
+          className="w-full bg-green-500 hover:bg-green-600 text-white font-medium py-3 px-6 rounded-md my-2"
           onClick={() => {
             if (confirm('Are you sure you want to export your data? This will download all your transactions and settings.')) {
               alert('This feature is not yet implemented.');
@@ -172,7 +172,7 @@ export default function SettingsPage() {
         
         <button
           type="button"
-          className="w-full bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-4 rounded-md my-1"
+          className="w-full bg-red-500 hover:bg-red-600 text-white font-medium py-3 px-6 rounded-md my-2"
           onClick={() => {
             if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
               alert('This feature is not yet implemented.');
@@ -189,7 +189,7 @@ export default function SettingsPage() {
           type="button"
           onClick={handleSaveSettings}
           disabled={isSubmitting}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md shadow-md"
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-md shadow-md my-2"
         >
           {isSubmitting ? 'Saving...' : 'Save Settings'}
         </button>

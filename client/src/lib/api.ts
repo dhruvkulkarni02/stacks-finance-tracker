@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 // Get the API URL from environment variables
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api';
 
 console.log('Using API URL:', API_URL);
 
@@ -37,7 +37,18 @@ api.interceptors.request.use(
 // Transactions API
 export const getTransactions = async (month?: string) => {
   try {
-    const url = `/transactions${month ? `?month=${month}` : ''}`;
+    // Get user from localStorage
+    const userJson = localStorage.getItem('user');
+    if (!userJson) {
+      console.error('No user found in localStorage');
+      return [];
+    }
+    
+    const user = JSON.parse(userJson);
+    const userId = user._id;
+    
+    // Add userId to the URL parameters
+    const url = `/transactions?user=${userId}${month ? `&month=${month}` : ''}`;
     console.log('Fetching transactions from:', url);
     
     const response = await api.get(url, { 
@@ -55,9 +66,24 @@ export const getTransactions = async (month?: string) => {
 
 export const createTransaction = async (transaction: any) => {
   try {
-    console.log('API call to create transaction:', transaction);
+    // Get user from localStorage
+    const userJson = localStorage.getItem('user');
+    if (!userJson) {
+      console.error('No user found in localStorage');
+      throw new Error('User authentication required');
+    }
     
-    const response = await api.post('/transactions', transaction);
+    const user = JSON.parse(userJson);
+    
+    // Add userId to the transaction data
+    const transactionWithUser = {
+      ...transaction,
+      userId: user._id
+    };
+    
+    console.log('API call to create transaction with userId:', transactionWithUser);
+    
+    const response = await api.post('/transactions', transactionWithUser);
     console.log('Transaction created successfully:', response.data);
     return response.data;
   } catch (error) {
@@ -69,7 +95,18 @@ export const createTransaction = async (transaction: any) => {
 // Summary API
 export const getSummary = async (month?: string) => {
   try {
-    const url = `/summary${month ? `?month=${month}` : ''}`;
+    // Get user from localStorage
+    const userJson = localStorage.getItem('user');
+    if (!userJson) {
+      console.error('No user found in localStorage');
+      return { income: 0, expenses: 0, balance: 0 };
+    }
+    
+    const user = JSON.parse(userJson);
+    const userId = user._id;
+    
+    // Add userId to the URL parameters
+    const url = `/summary?user=${userId}${month ? `&month=${month}` : ''}`;
     console.log('Fetching summary from:', url);
     
     const response = await api.get(url, {
@@ -88,7 +125,17 @@ export const getSummary = async (month?: string) => {
 // Goals API
 export const getGoals = async () => {
   try {
-    const response = await api.get(`/goals`);
+    // Get user from localStorage
+    const userJson = localStorage.getItem('user');
+    if (!userJson) {
+      console.error('No user found in localStorage');
+      return [];
+    }
+    
+    const user = JSON.parse(userJson);
+    const userId = user._id;
+    
+    const response = await api.get(`/goals?user=${userId}`);
     return response.data;
   } catch (error) {
     console.error('Error fetching goals:', error);
@@ -98,7 +145,25 @@ export const getGoals = async () => {
 
 export const createGoal = async (goal: any) => {
   try {
-    const response = await api.post('/goals', goal);
+    // Get user from localStorage
+    const userJson = localStorage.getItem('user');
+    if (!userJson) {
+      console.error('No user found in localStorage');
+      throw new Error('User authentication required');
+    }
+    
+    const user = JSON.parse(userJson);
+    
+    // Add userId to the goal data
+    const goalWithUser = {
+      ...goal,
+      userId: user._id
+    };
+    
+    console.log('API call to create goal with userId:', goalWithUser);
+    
+    const response = await api.post('/goals', goalWithUser);
+    console.log('Goal created successfully:', response.data);
     return response.data;
   } catch (error) {
     console.error('Error creating goal:', error);

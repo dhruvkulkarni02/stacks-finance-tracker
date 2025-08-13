@@ -58,10 +58,35 @@ export const registerUser = async (req: Request, res: Response) => {
     }
   } catch (error) {
     console.error('Registration error:', error);
+    
+    // Handle mongoose validation errors
+    if (error instanceof Error && error.name === 'ValidationError') {
+      const validationErrors: { [key: string]: string } = {};
+      
+      // Extract validation errors from mongoose
+      if ('errors' in error) {
+        const mongooseErrors = error.errors as any;
+        for (const field in mongooseErrors) {
+          validationErrors[field] = mongooseErrors[field].message;
+        }
+      }
+      
+      return res.status(400).json({ 
+        message: 'Validation failed',
+        errors: validationErrors
+      });
+    }
+    
+    // Handle duplicate email error
+    if (error instanceof Error && 'code' in error && (error as any).code === 11000) {
+      return res.status(400).json({ 
+        message: 'Email already exists. Please use a different email address.'
+      });
+    }
+    
     res.status(500).json({ 
-      message: 'Error registering user',
-      error: error instanceof Error ? error.message : 'Unknown error',
-      stack: process.env.NODE_ENV === 'development' ? (error instanceof Error ? error.stack : '') : undefined
+      message: 'Error registering user. Please try again.',
+      error: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 };

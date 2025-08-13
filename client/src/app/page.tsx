@@ -4,7 +4,9 @@
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { useSearchParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import TransactionList from '@/components/transactions/TransactionList';
+import SpendingInsights from '@/components/insights/SpendingInsights';
 import { getSummary, getTransactions } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 
@@ -133,60 +135,199 @@ export default function Home() {
   }
 
   return (
-    <div className="container mx-auto">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold mb-2">Stacks Finance Tracker</h1>
-          <p className="text-gray-600">Your personal finance tracking dashboard</p>
-        </div>
-        
-        <div className="flex items-center space-x-4">
-          <div>
-            <label htmlFor="month-select" className="mr-2 text-gray-700">Month:</label>
-            <input
-              type="month"
-              id="month-select"
-              value={currentMonth}
-              onChange={handleMonthChange}
-              className="border rounded p-2 focus:ring-blue-500 focus:border-blue-500"
-            />
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 space-y-6 md:space-y-0">
+          <div className="space-y-2">
+            <h1 className="text-4xl font-extrabold bg-gradient-to-r from-gray-900 via-blue-800 to-indigo-600 bg-clip-text text-transparent mb-3">
+              Welcome back, {user.name}! 👋
+            </h1>
+            <p className="text-lg text-gray-600 font-medium">
+              Here's your financial overview for {format(new Date(currentMonth + '-01'), 'MMMM yyyy')}
+            </p>
+            <div className="w-16 h-1 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full"></div>
           </div>
           
-          <button 
-            onClick={refreshData}
-            className="bg-blue-100 text-blue-700 px-3 py-2 rounded hover:bg-blue-200"
-          >
-            ↻ Refresh
-          </button>
+          <div className="flex items-center space-x-6">
+            <div className="flex items-center space-x-3 bg-white/80 backdrop-blur-sm rounded-xl px-4 py-3 shadow-lg border border-white/20">
+              <label htmlFor="month-select" className="text-sm font-semibold text-gray-700">📅 Month:</label>
+              <input
+                type="month"
+                id="month-select"
+                value={currentMonth}
+                onChange={handleMonthChange}
+                className="border-0 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 bg-white/90 text-gray-900 font-medium shadow-sm"
+              />
+            </div>
+            
+            <button 
+              onClick={refreshData}
+              className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-6 py-3 rounded-xl transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+            >
+              <span className="text-lg">🔄</span>
+              <span className="font-semibold">Refresh</span>
+            </button>
+          </div>
         </div>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-xl font-semibold text-gray-700 mb-2">Balance</h2>
-          <p className={`text-3xl font-bold ${summary.balance >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
-            ${summary.balance.toFixed(2)}
-          </p>
+        
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+          {/* Balance Card */}
+          <div className="group relative overflow-hidden bg-white/80 backdrop-blur-lg p-8 rounded-2xl shadow-xl border border-white/20 hover:shadow-2xl transition-all duration-500 hover:-translate-y-2">
+            <div className="absolute inset-0 bg-gradient-to-br from-emerald-400/10 to-green-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div className="relative z-10">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-2">Current Balance</h2>
+                  <p className={`text-3xl font-black ${summary.balance >= 0 ? 'text-emerald-600' : 'text-red-500'} mb-2`}>
+                    ${Math.abs(summary.balance).toFixed(2)}
+                  </p>
+                  {summary.balance < 0 && <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold text-red-600 bg-red-100">⚠️ Deficit</span>}
+                </div>
+                <div className={`w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg ${
+                  summary.balance >= 0 ? 'bg-gradient-to-br from-emerald-400 to-green-500' : 'bg-gradient-to-br from-red-400 to-red-500'
+                }`}>
+                  <span className="text-2xl">{summary.balance >= 0 ? '💰' : '⚠️'}</span>
+                </div>
+              </div>
+              <div className="text-sm text-gray-600 font-medium">
+                {summary.balance >= 0 ? '🎉 You\'re doing fantastic!' : '💡 Consider reviewing your expenses'}
+              </div>
+            </div>
+          </div>
+
+          {/* Income Card */}
+          <div className="group relative overflow-hidden bg-white/80 backdrop-blur-lg p-8 rounded-2xl shadow-xl border border-white/20 hover:shadow-2xl transition-all duration-500 hover:-translate-y-2">
+            <div className="absolute inset-0 bg-gradient-to-br from-emerald-400/10 to-green-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div className="relative z-10">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-2">Total Income</h2>
+                  <p className="text-3xl font-black text-emerald-600 mb-2">
+                    +${summary.income.toFixed(2)}
+                  </p>
+                </div>
+                <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 to-green-500 rounded-2xl flex items-center justify-center shadow-lg">
+                  <span className="text-2xl">📈</span>
+                </div>
+              </div>
+              <div className="text-sm text-gray-600 font-medium">
+                💸 Money flowing in this month
+              </div>
+            </div>
+          </div>
+
+          {/* Expenses Card */}
+          <div className="group relative overflow-hidden bg-white/80 backdrop-blur-lg p-8 rounded-2xl shadow-xl border border-white/20 hover:shadow-2xl transition-all duration-500 hover:-translate-y-2">
+            <div className="absolute inset-0 bg-gradient-to-br from-red-400/10 to-red-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div className="relative z-10">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-2">Total Expenses</h2>
+                  <p className="text-3xl font-black text-red-500 mb-2">
+                    -${summary.expenses.toFixed(2)}
+                  </p>
+                </div>
+                <div className="w-16 h-16 bg-gradient-to-br from-red-400 to-red-500 rounded-2xl flex items-center justify-center shadow-lg">
+                  <span className="text-2xl">📉</span>
+                </div>
+              </div>
+              <div className="text-sm text-gray-600 font-medium">
+                💳 Money spent this month
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-xl font-semibold text-gray-700 mb-2">Income</h2>
-          <p className="text-3xl font-bold text-green-600">${summary.income.toFixed(2)}</p>
-        </div>
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-xl font-semibold text-gray-700 mb-2">Expenses</h2>
-          <p className="text-3xl font-bold text-red-600">${summary.expenses.toFixed(2)}</p>
-        </div>
-      </div>
-      
-      <div className="bg-white p-6 rounded-lg shadow mb-6">
-        <h2 className="text-xl font-semibold text-gray-700 mb-4">Recent Transactions</h2>
-        {transactions.length > 0 ? (
-          <TransactionList transactions={transactions} />
-        ) : (
-          <div className="text-center py-8 text-gray-500">
-            No transactions found for this month. Add your first transaction to get started!
+
+        {/* Quick Stats */}
+        {summary.income > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+            <div className="bg-white/70 backdrop-blur-sm p-6 rounded-xl border border-blue-200/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+              <div className="flex items-center space-x-3 mb-2">
+                <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center">
+                  <span className="text-white text-lg">💾</span>
+                </div>
+                <div className="text-sm text-blue-600 font-bold uppercase tracking-wider">Savings Rate</div>
+              </div>
+              <div className="text-2xl font-black text-blue-700">
+                {((summary.balance / summary.income) * 100).toFixed(1)}%
+              </div>
+            </div>
+            <div className="bg-white/70 backdrop-blur-sm p-6 rounded-xl border border-purple-200/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+              <div className="flex items-center space-x-3 mb-2">
+                <div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-purple-600 rounded-xl flex items-center justify-center">
+                  <span className="text-white text-lg">📊</span>
+                </div>
+                <div className="text-sm text-purple-600 font-bold uppercase tracking-wider">Expense Ratio</div>
+              </div>
+              <div className="text-2xl font-black text-purple-700">
+                {((summary.expenses / summary.income) * 100).toFixed(1)}%
+              </div>
+            </div>
+            <div className="bg-white/70 backdrop-blur-sm p-6 rounded-xl border border-yellow-200/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+              <div className="flex items-center space-x-3 mb-2">
+                <div className="w-10 h-10 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-xl flex items-center justify-center">
+                  <span className="text-white text-lg">📝</span>
+                </div>
+                <div className="text-sm text-yellow-600 font-bold uppercase tracking-wider">Transactions</div>
+              </div>
+              <div className="text-2xl font-black text-yellow-700">
+                {transactions.length}
+              </div>
+            </div>
+            <div className="bg-white/70 backdrop-blur-sm p-6 rounded-xl border border-green-200/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+              <div className="flex items-center space-x-3 mb-2">
+                <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-emerald-600 rounded-xl flex items-center justify-center">
+                  <span className="text-white text-lg">💳</span>
+                </div>
+                <div className="text-sm text-green-600 font-bold uppercase tracking-wider">Avg Transaction</div>
+              </div>
+              <div className="text-2xl font-black text-green-700">
+                ${transactions.length > 0 ? (summary.expenses / transactions.filter(t => t.type === 'expense').length || 0).toFixed(2) : '0.00'}
+              </div>
+            </div>
           </div>
         )}
+        
+        {/* Spending Insights */}
+        <div className="mb-12">
+          <SpendingInsights transactions={transactions} currentMonth={currentMonth} />
+        </div>
+        
+        {/* Transactions Section */}
+        <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl border border-white/20 overflow-hidden">
+          <div className="bg-gradient-to-r from-slate-50 to-blue-50 p-8 border-b border-gray-200/50">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-1">Recent Transactions</h2>
+                <p className="text-gray-600 font-medium">{transactions.length} transaction(s) this month</p>
+              </div>
+              <div className="flex items-center space-x-4">
+                <span className="inline-flex items-center px-4 py-2 rounded-xl text-sm font-semibold text-blue-600 bg-blue-100/80">
+                  📊 Activity
+                </span>
+              </div>
+            </div>
+          </div>
+          
+          <div className="p-6">
+            {transactions.length > 0 ? (
+              <TransactionList transactions={transactions} />
+            ) : (
+              <div className="text-center py-12">
+                <div className="text-6xl mb-4">💳</div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No transactions yet</h3>
+                <p className="text-gray-500 mb-6">Add your first transaction to start tracking your finances!</p>
+                <Link href="/add-transaction">
+                  <button className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                    Add Your First Transaction
+                  </button>
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

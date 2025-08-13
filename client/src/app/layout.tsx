@@ -4,7 +4,6 @@
 import './globals.css';
 import { Inter } from 'next/font/google';
 import Navbar from '@/components/Navbar';
-import Sidebar from '@/components/Sidebar';
 import { AuthProvider } from '@/context/AuthContext';
 import { usePathname } from 'next/navigation';
 import { ReactNode } from 'react';
@@ -29,12 +28,9 @@ export default function RootLayout({
           ) : (
             <div className="flex flex-col min-h-screen">
               <Navbar />
-              <div className="flex flex-1">
-                <Sidebar />
-                <main className="flex-1 p-4 ml-64">
-                  {children}
-                </main>
-              </div>
+              <main className="flex-1">
+                {children}
+              </main>
             </div>
           )}
         </AuthProvider>

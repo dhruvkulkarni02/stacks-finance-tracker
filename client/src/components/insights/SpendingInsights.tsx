@@ -101,9 +101,9 @@ export default function SpendingInsights({ transactions, currentMonth }: Spendin
 
   if (transactions.length === 0) {
     return (
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">📊 Spending Insights</h3>
-        <div className="text-center py-8 text-gray-500">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">📊 Spending Insights</h3>
+        <div className="text-center py-8 text-gray-500 dark:text-gray-400">
           <div className="text-4xl mb-3">🔍</div>
           <p>Add some transactions to see your spending insights!</p>
         </div>
@@ -112,48 +112,48 @@ export default function SpendingInsights({ transactions, currentMonth }: Spendin
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-      <h3 className="text-lg font-semibold text-gray-900 mb-6">📊 Spending Insights</h3>
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">📊 Spending Insights</h3>
       
       {/* Quick Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <div className="text-center p-4 bg-blue-50 rounded-lg">
-          <div className="text-2xl font-bold text-blue-600">{insights.transactionCount}</div>
-          <div className="text-sm text-blue-600">Transactions</div>
+        <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+          <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{insights.transactionCount}</div>
+          <div className="text-sm text-blue-600 dark:text-blue-400">Transactions</div>
         </div>
-        <div className="text-center p-4 bg-green-50 rounded-lg">
-          <div className="text-2xl font-bold text-green-600">${insights.avgIncome.toFixed(0)}</div>
-          <div className="text-sm text-green-600">Avg Income</div>
+        <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+          <div className="text-2xl font-bold text-green-600 dark:text-green-400">${insights.avgIncome.toFixed(0)}</div>
+          <div className="text-sm text-green-600 dark:text-green-400">Avg Income</div>
         </div>
-        <div className="text-center p-4 bg-red-50 rounded-lg">
-          <div className="text-2xl font-bold text-red-600">${insights.avgExpense.toFixed(0)}</div>
-          <div className="text-sm text-red-600">Avg Expense</div>
+        <div className="text-center p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
+          <div className="text-2xl font-bold text-red-600 dark:text-red-400">${insights.avgExpense.toFixed(0)}</div>
+          <div className="text-sm text-red-600 dark:text-red-400">Avg Expense</div>
         </div>
-        <div className="text-center p-4 bg-purple-50 rounded-lg">
-          <div className="text-2xl font-bold text-purple-600">
+        <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+          <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
             {insights.topSpendingDay ? insights.topSpendingDay[1].toFixed(0) : '0'}
           </div>
-          <div className="text-sm text-purple-600">Highest Day</div>
+          <div className="text-sm text-purple-600 dark:text-purple-400">Highest Day</div>
         </div>
       </div>
 
       {/* Category Breakdown */}
       {insights.categoryInsights.length > 0 && (
         <div>
-          <h4 className="text-md font-medium text-gray-900 mb-4">Top Spending Categories</h4>
+          <h4 className="text-md font-medium text-gray-900 dark:text-white mb-4">Top Spending Categories</h4>
           <div className="space-y-3">
             {insights.categoryInsights.slice(0, 5).map((category) => (
               <div key={category.category} className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   <span className="text-xl">{category.emoji}</span>
                   <div>
-                    <div className="font-medium text-gray-900 capitalize">{category.category}</div>
-                    <div className="text-sm text-gray-500">{category.count} transaction(s)</div>
+                    <div className="font-medium text-gray-900 dark:text-white capitalize">{category.category}</div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">{category.count} transaction(s)</div>
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="font-semibold text-gray-900">${category.amount.toFixed(2)}</div>
-                  <div className="text-sm text-gray-500">{category.percentage.toFixed(1)}%</div>
+                  <div className="font-semibold text-gray-900 dark:text-white">${category.amount.toFixed(2)}</div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">{category.percentage.toFixed(1)}%</div>
                 </div>
               </div>
             ))}
@@ -162,18 +162,18 @@ export default function SpendingInsights({ transactions, currentMonth }: Spendin
       )}
 
       {/* Spending Habits */}
-      <div className="mt-6 pt-6 border-t border-gray-200">
-        <h4 className="text-md font-medium text-gray-900 mb-4">💡 Smart Insights</h4>
+      <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+        <h4 className="text-md font-medium text-gray-900 dark:text-white mb-4">💡 Smart Insights</h4>
         <div className="space-y-2 text-sm">
           {insights.totalExpenses > insights.totalIncome && (
-            <div className="flex items-center p-3 bg-yellow-50 rounded-lg text-yellow-800">
+            <div className="flex items-center p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg text-yellow-800 dark:text-yellow-300">
               <span className="mr-2">⚠️</span>
               <span>Your expenses exceed your income this month. Consider reviewing your spending.</span>
             </div>
           )}
           
           {insights.categoryInsights[0] && insights.categoryInsights[0].percentage > 40 && (
-            <div className="flex items-center p-3 bg-blue-50 rounded-lg text-blue-800">
+            <div className="flex items-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-blue-800 dark:text-blue-300">
               <span className="mr-2">📊</span>
               <span>
                 {insights.categoryInsights[0].percentage.toFixed(0)}% of your spending is on {insights.categoryInsights[0].category}. 
@@ -183,14 +183,14 @@ export default function SpendingInsights({ transactions, currentMonth }: Spendin
           )}
           
           {insights.totalExpenses > 0 && (insights.totalIncome - insights.totalExpenses) / insights.totalIncome > 0.2 && (
-            <div className="flex items-center p-3 bg-green-50 rounded-lg text-green-800">
+            <div className="flex items-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg text-green-800 dark:text-green-300">
               <span className="mr-2">🎉</span>
               <span>Great job! You're saving over 20% of your income this month.</span>
             </div>
           )}
           
           {insights.topSpendingDay && (
-            <div className="flex items-center p-3 bg-purple-50 rounded-lg text-purple-800">
+            <div className="flex items-center p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg text-purple-800 dark:text-purple-300">
               <span className="mr-2">📅</span>
               <span>
                 Your highest spending day was {new Date(insights.topSpendingDay[0]).toLocaleDateString()} 

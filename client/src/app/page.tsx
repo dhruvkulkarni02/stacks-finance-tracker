@@ -7,8 +7,11 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import TransactionList from '@/components/transactions/TransactionList';
 import SpendingInsights from '@/components/insights/SpendingInsights';
+import BudgetManager from '@/components/budgets/BudgetManager';
+import FinancialGoalsManager from '@/components/goals/FinancialGoalsManager';
 import { getSummary, getTransactions } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
+import { useCurrency } from '@/context/CurrencyContext';
 
 interface Summary {
   income: number;
@@ -30,12 +33,14 @@ export default function Home() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { user, loading } = useAuth();
+  const { formatAmount } = useCurrency();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [summary, setSummary] = useState<Summary>({ income: 0, expenses: 0, balance: 0 });
   const [fetchLoading, setFetchLoading] = useState(true);
   const [error, setError] = useState('');
   const [currentMonth, setCurrentMonth] = useState(format(new Date(), 'yyyy-MM'));
   const [refreshKey, setRefreshKey] = useState(0);
+  const [activeTab, setActiveTab] = useState('overview');
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -135,156 +140,101 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         {/* Header Section */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 space-y-6 md:space-y-0">
-          <div className="space-y-2">
-            <h1 className="text-4xl font-extrabold bg-gradient-to-r from-gray-900 via-blue-800 to-indigo-600 bg-clip-text text-transparent mb-3">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 space-y-4 md:space-y-0">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
               Welcome back, {user.name}! 👋
             </h1>
-            <p className="text-lg text-gray-600 font-medium">
+            <p className="text-gray-600 dark:text-gray-400">
               Here's your financial overview for {format(new Date(currentMonth + '-01'), 'MMMM yyyy')}
             </p>
-            <div className="w-16 h-1 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full"></div>
           </div>
           
-          <div className="flex items-center space-x-6">
-            <div className="flex items-center space-x-3 bg-white/80 backdrop-blur-sm rounded-xl px-4 py-3 shadow-lg border border-white/20">
-              <label htmlFor="month-select" className="text-sm font-semibold text-gray-700">📅 Month:</label>
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3 bg-white dark:bg-gray-800 rounded-xl px-4 py-3 shadow-sm border border-gray-200 dark:border-gray-700">
+              <label htmlFor="month-select" className="text-sm font-medium text-gray-700 dark:text-gray-300">📅</label>
               <input
                 type="month"
                 id="month-select"
                 value={currentMonth}
                 onChange={handleMonthChange}
-                className="border-0 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 bg-white/90 text-gray-900 font-medium shadow-sm"
+                className="border-0 rounded-lg px-3 py-1 focus:ring-2 focus:ring-blue-500 bg-transparent text-gray-900 dark:text-white font-medium"
               />
             </div>
             
             <button 
               onClick={refreshData}
-              className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-6 py-3 rounded-xl transition-all duration-300 flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-3 rounded-xl transition-all duration-300 flex items-center space-x-2 shadow-sm"
             >
-              <span className="text-lg">🔄</span>
-              <span className="font-semibold">Refresh</span>
+              <span>🔄</span>
+              <span className="font-medium">Refresh</span>
             </button>
           </div>
         </div>
         
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-          {/* Balance Card */}
-          <div className="group relative overflow-hidden bg-white/80 backdrop-blur-lg p-8 rounded-2xl shadow-xl border border-white/20 hover:shadow-2xl transition-all duration-500 hover:-translate-y-2">
-            <div className="absolute inset-0 bg-gradient-to-br from-emerald-400/10 to-green-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            <div className="relative z-10">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-2">Current Balance</h2>
-                  <p className={`text-3xl font-black ${summary.balance >= 0 ? 'text-emerald-600' : 'text-red-500'} mb-2`}>
-                    ${Math.abs(summary.balance).toFixed(2)}
-                  </p>
-                  {summary.balance < 0 && <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold text-red-600 bg-red-100">⚠️ Deficit</span>}
-                </div>
-                <div className={`w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg ${
-                  summary.balance >= 0 ? 'bg-gradient-to-br from-emerald-400 to-green-500' : 'bg-gradient-to-br from-red-400 to-red-500'
-                }`}>
-                  <span className="text-2xl">{summary.balance >= 0 ? '💰' : '⚠️'}</span>
-                </div>
-              </div>
-              <div className="text-sm text-gray-600 font-medium">
-                {summary.balance >= 0 ? '🎉 You\'re doing fantastic!' : '💡 Consider reviewing your expenses'}
-              </div>
-            </div>
-          </div>
-
-          {/* Income Card */}
-          <div className="group relative overflow-hidden bg-white/80 backdrop-blur-lg p-8 rounded-2xl shadow-xl border border-white/20 hover:shadow-2xl transition-all duration-500 hover:-translate-y-2">
-            <div className="absolute inset-0 bg-gradient-to-br from-emerald-400/10 to-green-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            <div className="relative z-10">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-2">Total Income</h2>
-                  <p className="text-3xl font-black text-emerald-600 mb-2">
-                    +${summary.income.toFixed(2)}
-                  </p>
-                </div>
-                <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 to-green-500 rounded-2xl flex items-center justify-center shadow-lg">
-                  <span className="text-2xl">📈</span>
+        {/* Main Summary */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          {/* Balance - Main Focus */}
+          <div className="lg:col-span-2 bg-white dark:bg-gray-800 p-8 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all duration-300">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-600 dark:text-gray-400 mb-3">Current Balance</h2>
+                <p className={`text-5xl font-bold mb-4 ${summary.balance >= 0 ? 'text-gray-900 dark:text-white' : 'text-red-500 dark:text-red-400'}`}>
+                  {summary.balance >= 0 ? '+' : '-'}{formatAmount(Math.abs(summary.balance))}
+                </p>
+                <div className="flex items-center space-x-4 text-sm">
+                  <span className="text-green-600 dark:text-green-400 font-medium">
+                    ↗ {formatAmount(summary.income)} income
+                  </span>
+                  <span className="text-red-500 dark:text-red-400 font-medium">
+                    ↘ {formatAmount(summary.expenses)} expenses
+                  </span>
                 </div>
               </div>
-              <div className="text-sm text-gray-600 font-medium">
-                💸 Money flowing in this month
+              <div className="text-6xl opacity-20">
+                {summary.balance >= 0 ? '💰' : '⚠️'}
               </div>
             </div>
           </div>
 
-          {/* Expenses Card */}
-          <div className="group relative overflow-hidden bg-white/80 backdrop-blur-lg p-8 rounded-2xl shadow-xl border border-white/20 hover:shadow-2xl transition-all duration-500 hover:-translate-y-2">
-            <div className="absolute inset-0 bg-gradient-to-br from-red-400/10 to-red-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            <div className="relative z-10">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-2">Total Expenses</h2>
-                  <p className="text-3xl font-black text-red-500 mb-2">
-                    -${summary.expenses.toFixed(2)}
-                  </p>
-                </div>
-                <div className="w-16 h-16 bg-gradient-to-br from-red-400 to-red-500 rounded-2xl flex items-center justify-center shadow-lg">
-                  <span className="text-2xl">📉</span>
-                </div>
+          {/* Key Metrics */}
+          <div className="space-y-4">
+            <div className="bg-green-50 dark:bg-green-900/20 p-6 rounded-2xl border border-green-100 dark:border-green-800">
+              <div className="text-green-600 dark:text-green-400 text-sm font-medium mb-1">Savings Rate</div>
+              <div className="text-2xl font-bold text-green-700 dark:text-green-300">
+                {summary.income > 0 ? ((summary.balance / summary.income) * 100).toFixed(1) : '0.0'}%
               </div>
-              <div className="text-sm text-gray-600 font-medium">
-                💳 Money spent this month
+            </div>
+            
+            <div className="bg-blue-50 dark:bg-blue-900/20 p-6 rounded-2xl border border-blue-100 dark:border-blue-800">
+              <div className="text-blue-600 dark:text-blue-400 text-sm font-medium mb-1">Transactions</div>
+              <div className="text-2xl font-bold text-blue-700 dark:text-blue-300">
+                {transactions.length}
               </div>
             </div>
           </div>
         </div>
 
-        {/* Quick Stats */}
-        {summary.income > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-            <div className="bg-white/70 backdrop-blur-sm p-6 rounded-xl border border-blue-200/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-              <div className="flex items-center space-x-3 mb-2">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center">
-                  <span className="text-white text-lg">💾</span>
+        {/* Analytics Call-to-Action */}
+        {transactions.length > 0 && (
+          <div className="mb-8">
+            <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl p-6 text-white relative overflow-hidden">
+              <div className="absolute inset-0 bg-black/5"></div>
+              <div className="relative z-10 flex flex-col sm:flex-row items-center justify-between">
+                <div className="mb-4 sm:mb-0">
+                  <h3 className="text-xl font-bold mb-2">📊 Advanced Analytics</h3>
+                  <p className="text-indigo-100 opacity-90">
+                    Get AI insights, track goals, and analyze spending patterns
+                  </p>
                 </div>
-                <div className="text-sm text-blue-600 font-bold uppercase tracking-wider">Savings Rate</div>
-              </div>
-              <div className="text-2xl font-black text-blue-700">
-                {((summary.balance / summary.income) * 100).toFixed(1)}%
-              </div>
-            </div>
-            <div className="bg-white/70 backdrop-blur-sm p-6 rounded-xl border border-purple-200/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-              <div className="flex items-center space-x-3 mb-2">
-                <div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-purple-600 rounded-xl flex items-center justify-center">
-                  <span className="text-white text-lg">📊</span>
-                </div>
-                <div className="text-sm text-purple-600 font-bold uppercase tracking-wider">Expense Ratio</div>
-              </div>
-              <div className="text-2xl font-black text-purple-700">
-                {((summary.expenses / summary.income) * 100).toFixed(1)}%
-              </div>
-            </div>
-            <div className="bg-white/70 backdrop-blur-sm p-6 rounded-xl border border-yellow-200/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-              <div className="flex items-center space-x-3 mb-2">
-                <div className="w-10 h-10 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-xl flex items-center justify-center">
-                  <span className="text-white text-lg">📝</span>
-                </div>
-                <div className="text-sm text-yellow-600 font-bold uppercase tracking-wider">Transactions</div>
-              </div>
-              <div className="text-2xl font-black text-yellow-700">
-                {transactions.length}
-              </div>
-            </div>
-            <div className="bg-white/70 backdrop-blur-sm p-6 rounded-xl border border-green-200/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-              <div className="flex items-center space-x-3 mb-2">
-                <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-emerald-600 rounded-xl flex items-center justify-center">
-                  <span className="text-white text-lg">💳</span>
-                </div>
-                <div className="text-sm text-green-600 font-bold uppercase tracking-wider">Avg Transaction</div>
-              </div>
-              <div className="text-2xl font-black text-green-700">
-                ${transactions.length > 0 ? (summary.expenses / transactions.filter(t => t.type === 'expense').length || 0).toFixed(2) : '0.00'}
+                <Link href="/analytics">
+                  <button className="bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 hover:scale-105">
+                    View Analytics →
+                  </button>
+                </Link>
               </div>
             </div>
           </div>
@@ -295,7 +245,116 @@ export default function Home() {
           <SpendingInsights transactions={transactions} currentMonth={currentMonth} />
         </div>
         
-        {/* Transactions Section */}
+        {/* Feature Tabs */}
+        <div className="mb-12">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+            {/* Tab Navigation */}
+            <div className="border-b border-gray-200 dark:border-gray-700">
+              <div className="flex space-x-1 p-4">
+                <button
+                  onClick={() => setActiveTab('transactions')}
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors duration-200 ${
+                    activeTab === 'transactions'
+                      ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300'
+                      : 'text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  }`}
+                >
+                  📊 Transactions
+                </button>
+                <button
+                  onClick={() => setActiveTab('budgets')}
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors duration-200 ${
+                    activeTab === 'budgets'
+                      ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300'
+                      : 'text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  }`}
+                >
+                  💰 Budgets
+                </button>
+                <button
+                  onClick={() => setActiveTab('goals')}
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors duration-200 ${
+                    activeTab === 'goals'
+                      ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300'
+                      : 'text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  }`}
+                >
+                  🎯 Goals
+                </button>
+                <button
+                  onClick={() => setActiveTab('search')}
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors duration-200 ${
+                    activeTab === 'search'
+                      ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300'
+                      : 'text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  }`}
+                >
+                  🔍 Search & Filter
+                </button>
+              </div>
+            </div>
+            
+            {/* Tab Content */}
+            <div className="p-6">
+              {activeTab === 'transactions' && (
+                <div>
+                  <div className="mb-6">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-1">Recent Transactions</h2>
+                    <p className="text-gray-600 font-medium">{transactions.length} transaction(s) this month</p>
+                  </div>
+                  {transactions.length > 0 ? (
+                    <TransactionList transactions={transactions} />
+                  ) : (
+                    <div className="text-center py-12">
+                      <div className="text-6xl mb-4">💳</div>
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">No transactions yet</h3>
+                      <p className="text-gray-500 mb-6">Add your first transaction to start tracking your finances!</p>
+                      <Link href="/add-transaction">
+                        <button className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                          Add Your First Transaction
+                        </button>
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              )}
+              
+              {activeTab === 'budgets' && (
+                <BudgetManager />
+              )}
+              
+              {activeTab === 'goals' && (
+                <FinancialGoalsManager />
+              )}
+              
+              {activeTab === 'search' && (
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-6">Search & Filter Transactions</h2>
+                  <div className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl p-6 border border-gray-200/50">
+                    <p className="text-gray-600 mb-4">Advanced search and filtering features coming soon!</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      <div className="bg-white/80 p-4 rounded-lg border border-gray-200/50">
+                        <h3 className="font-semibold text-gray-800 mb-2">📅 Date Range</h3>
+                        <p className="text-sm text-gray-600">Filter by custom date ranges</p>
+                      </div>
+                      <div className="bg-white/80 p-4 rounded-lg border border-gray-200/50">
+                        <h3 className="font-semibold text-gray-800 mb-2">🏷️ Categories</h3>
+                        <p className="text-sm text-gray-600">Filter by transaction categories</p>
+                      </div>
+                      <div className="bg-white/80 p-4 rounded-lg border border-gray-200/50">
+                        <h3 className="font-semibold text-gray-800 mb-2">💵 Amount Range</h3>
+                        <p className="text-sm text-gray-600">Filter by amount ranges</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+        
+        {/* Legacy Transactions Section (Hidden - now using tabs) */}
+        {false && (
         <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl border border-white/20 overflow-hidden">
           <div className="bg-gradient-to-r from-slate-50 to-blue-50 p-8 border-b border-gray-200/50">
             <div className="flex items-center justify-between">
@@ -328,6 +387,7 @@ export default function Home() {
             )}
           </div>
         </div>
+        )}
       </div>
     </div>
   );

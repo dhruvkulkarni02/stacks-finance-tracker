@@ -95,7 +95,6 @@ export default function TransactionForm({
   const categories = categoryOptions[formData.type as keyof typeof categoryOptions];
 
   return (
-    return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-6">
       <div className="max-w-2xl mx-auto">
         <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-2xl border border-white/20 overflow-hidden">

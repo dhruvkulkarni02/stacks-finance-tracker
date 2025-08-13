@@ -9,6 +9,9 @@ import transactionRoutes from './routes/transactions';
 import goalRoutes from './routes/goals';
 import summaryRoutes from './routes/summary';
 import userRoutes from './routes/users';
+import budgetRoutes from './routes/budgets';
+import recurringTransactionRoutes from './routes/recurringTransactions';
+import financialGoalRoutes from './routes/financialGoals';
 
 const app = express();
 
@@ -26,6 +29,9 @@ app.use('/api/transactions', transactionRoutes);
 app.use('/api/goals', goalRoutes);
 app.use('/api/summary', summaryRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/budgets', budgetRoutes);
+app.use('/api/recurring-transactions', recurringTransactionRoutes);
+app.use('/api/financial-goals', financialGoalRoutes);
 
 // Health check route
 app.get('/api/health', (req: Request, res: Response) => {

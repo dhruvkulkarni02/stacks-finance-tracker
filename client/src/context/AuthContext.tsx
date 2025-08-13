@@ -32,7 +32,21 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 // Hook to use auth context
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    // Return default values during SSR or when provider is not available
+    return {
+      user: null,
+      login: async () => {},
+      register: async () => {},
+      logout: () => {},
+      loading: true,
+      error: null
+    };
+  }
+  return context;
+};
 
 // Auth provider component
 export const AuthProvider = ({ children }: { children: ReactNode }) => {

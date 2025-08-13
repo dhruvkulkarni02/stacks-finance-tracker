@@ -5,7 +5,7 @@ import Transaction from '../models/Transaction';
 // @route   GET /api/transactions
 export const getTransactions = async (req: Request, res: Response) => {
   try {
-    const { user, month } = req.query;
+    const { user, month, category, type, search, minAmount, maxAmount, startDate, endDate, limit, page } = req.query;
 
     if (!user) {
       return res.status(400).json({ message: 'User ID is required' });
@@ -20,8 +20,59 @@ export const getTransactions = async (req: Request, res: Response) => {
       query.date = { $regex: `^${monthStr}` };
     }
 
-    const transactions = await Transaction.find(query).sort({ date: -1 });
-    res.json(transactions);
+    // Add date range filter
+    if (startDate || endDate) {
+      query.date = {};
+      if (startDate) query.date.$gte = new Date(startDate as string);
+      if (endDate) query.date.$lte = new Date(endDate as string);
+    }
+
+    // Add category filter
+    if (category && category !== 'all') {
+      query.category = category;
+    }
+
+    // Add type filter
+    if (type && type !== 'all') {
+      query.type = type;
+    }
+
+    // Add amount range filter
+    if (minAmount || maxAmount) {
+      query.amount = {};
+      if (minAmount) query.amount.$gte = parseFloat(minAmount as string);
+      if (maxAmount) query.amount.$lte = parseFloat(maxAmount as string);
+    }
+
+    // Add text search
+    if (search) {
+      query.$or = [
+        { category: { $regex: search, $options: 'i' } },
+        { note: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    // Pagination
+    const pageNum = parseInt(page as string) || 1;
+    const limitNum = parseInt(limit as string) || 50;
+    const skip = (pageNum - 1) * limitNum;
+
+    const transactions = await Transaction.find(query)
+      .sort({ date: -1 })
+      .skip(skip)
+      .limit(limitNum);
+
+    // Get total count for pagination
+    const total = await Transaction.countDocuments(query);
+
+    res.json({
+      transactions,
+      pagination: {
+        current: pageNum,
+        pages: Math.ceil(total / limitNum),
+        total
+      }
+    });
   } catch (error) {
     res.status(500).json({ 
       message: 'Error fetching transactions',

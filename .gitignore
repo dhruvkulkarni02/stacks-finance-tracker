@@ -50,3 +50,5 @@ coverage/
 # Optional
 client/node_modules/
 client-old/node_modules/
+server/.env.backup
+server/.env.example

@@ -4,8 +4,6 @@ import axios from 'axios';
 // Get the API URL from environment variables
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api';
 
-console.log('Using API URL:', API_URL);
-
 // Create an axios instance
 const api = axios.create({
   baseURL: API_URL,
@@ -49,13 +47,9 @@ export const getTransactions = async (month?: string) => {
     
     // Add userId to the URL parameters
     const url = `/transactions?user=${userId}${month ? `&month=${month}` : ''}`;
-    console.log('Fetching transactions from:', url);
-    
     const response = await api.get(url, { 
       timeout: 10000 // Increase timeout to 10 seconds
     });
-    
-    console.log('Transaction response data:', response.data);
     
     // Handle both old and new response formats
     if (response.data && Array.isArray(response.data)) {
@@ -65,7 +59,6 @@ export const getTransactions = async (month?: string) => {
       // New format: { transactions: [...], pagination: {...} }
       return response.data.transactions;
     } else {
-      console.warn('Unexpected response format:', response.data);
       return [];
     }
   } catch (error) {
@@ -92,10 +85,7 @@ export const createTransaction = async (transaction: any) => {
       userId: user._id
     };
     
-    console.log('API call to create transaction with userId:', transactionWithUser);
-    
     const response = await api.post('/transactions', transactionWithUser);
-    console.log('Transaction created successfully:', response.data);
     return response.data;
   } catch (error) {
     console.error('Error creating transaction:', error);
@@ -118,13 +108,11 @@ export const getSummary = async (month?: string) => {
     
     // Add userId to the URL parameters
     const url = `/summary?user=${userId}${month ? `&month=${month}` : ''}`;
-    console.log('Fetching summary from:', url);
     
     const response = await api.get(url, {
       timeout: 10000 // Increase timeout to 10 seconds
     });
     
-    console.log('Summary response data:', response.data);
     return response.data;
   } catch (error) {
     console.error('Error fetching summary:', error);
@@ -171,10 +159,7 @@ export const createGoal = async (goal: any) => {
       userId: user._id
     };
     
-    console.log('API call to create goal with userId:', goalWithUser);
-    
     const response = await api.post('/goals', goalWithUser);
-    console.log('Goal created successfully:', response.data);
     return response.data;
   } catch (error) {
     console.error('Error creating goal:', error);

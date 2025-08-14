@@ -17,30 +17,57 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>('light');
   const [mounted, setMounted] = useState(false);
 
+  // Apply theme to document
+  const applyTheme = (newTheme: Theme) => {
+    if (typeof document !== 'undefined') {
+      const root = document.documentElement;
+      
+      // Remove all theme classes first
+      root.classList.remove('light', 'dark');
+      
+      // Add the new theme class
+      root.classList.add(newTheme);
+      
+      // Also set a data attribute for additional styling options
+      root.setAttribute('data-theme', newTheme);
+      
+      // Save to localStorage
+      localStorage.setItem('theme', newTheme);
+      
+      // Force a repaint to ensure styles are applied
+      root.style.setProperty('color-scheme', newTheme);
+    }
+  };
+
+  // Initialize theme
   useEffect(() => {
     setMounted(true);
-    // Check for saved theme preference or default to light mode
-    const savedTheme = localStorage.getItem('theme') as Theme;
-    if (savedTheme) {
-      setTheme(savedTheme);
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      setTheme('dark');
+    
+    if (typeof window !== 'undefined') {
+      // Get saved theme or system preference
+      const savedTheme = localStorage.getItem('theme') as Theme;
+      const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const initialTheme = savedTheme || (systemPrefersDark ? 'dark' : 'light');
+      
+      setTheme(initialTheme);
+      applyTheme(initialTheme);
     }
   }, []);
 
+  // Apply theme when it changes
   useEffect(() => {
     if (mounted) {
-      localStorage.setItem('theme', theme);
-      document.documentElement.classList.toggle('dark', theme === 'dark');
+      applyTheme(theme);
     }
   }, [theme, mounted]);
 
   const toggleTheme = () => {
-    setTheme(prev => prev === 'light' ? 'dark' : 'light');
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
   };
 
   if (!mounted) {
-    return <div>{children}</div>;
+    return <div className="contents">{children}</div>;
   }
 
   return (
@@ -57,7 +84,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 export function useTheme() {
   const context = useContext(ThemeContext);
   if (context === undefined) {
-    // Return default values during SSR or when provider is not available
     return {
       theme: 'light' as Theme,
       toggleTheme: () => {},

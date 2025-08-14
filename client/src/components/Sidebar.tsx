@@ -12,11 +12,11 @@ export default function Sidebar() {
   const navItems = [
     { name: 'Dashboard', path: '/', icon: '📊' },
     { name: 'Add Transaction', path: '/add-transaction', icon: '➕' },
+    { name: 'AI Assistant', path: '/ai-assistant', icon: '🤖' },
     { name: 'Settings', path: '/settings', icon: '⚙️' }
   ];
   
   const handleLogout = () => {
-    console.log("Logging out from sidebar");
     logout();
   };
   

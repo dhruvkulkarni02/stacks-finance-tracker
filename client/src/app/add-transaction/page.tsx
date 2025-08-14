@@ -28,10 +28,7 @@ export default function AddTransactionPage() {
     setSuccess(false);
     
     try {
-      console.log('Submitting transaction:', transaction);
-      
       const result = await createTransaction(transaction);
-      console.log('Transaction result:', result);
       
       setSuccess(true);
       

@@ -70,15 +70,12 @@ export default function Home() {
       try {
         setFetchLoading(true);
         
-        console.log('Fetching data for month:', currentMonth);
-        
         // Fetch data in parallel
         const [transactionsResponse, summaryResponse] = await Promise.all([
           getTransactions(currentMonth),
           getSummary(currentMonth)
         ]);
         
-        console.log('Transactions loaded:', transactionsResponse.length);
         setTransactions(transactionsResponse);
         setSummary(summaryResponse);
       } catch (err) {

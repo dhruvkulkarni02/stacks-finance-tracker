@@ -12,13 +12,22 @@ import userRoutes from './routes/users';
 import budgetRoutes from './routes/budgets';
 import recurringTransactionRoutes from './routes/recurringTransactions';
 import financialGoalRoutes from './routes/financialGoals';
+import { aiRoutes } from './routes/ai';
+import { advancedAIRoutes } from './routes/advancedAI';
+import realTimeMonitoringRoutes from './routes/realTimeMonitoring';
+import smartBudgetRoutes from './routes/smartBudget';
 
 const app = express();
 
 // Middleware
 app.use(express.json());
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:3000',
+  origin: [
+    'http://localhost:3000',
+    'http://localhost:3001', 
+    'http://localhost:3002',
+    process.env.CLIENT_URL || 'http://localhost:3000'
+  ],
   credentials: true
 }));
 app.use(helmet());
@@ -32,6 +41,10 @@ app.use('/api/users', userRoutes);
 app.use('/api/budgets', budgetRoutes);
 app.use('/api/recurring-transactions', recurringTransactionRoutes);
 app.use('/api/financial-goals', financialGoalRoutes);
+app.use('/api/ai', aiRoutes);
+app.use('/api/ai-advanced', advancedAIRoutes);
+app.use('/api/monitoring', realTimeMonitoringRoutes);
+app.use('/api/smart-budget', smartBudgetRoutes);
 
 // Health check route
 app.get('/api/health', (req: Request, res: Response) => {

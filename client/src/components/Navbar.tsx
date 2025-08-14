@@ -73,6 +73,24 @@ export default function Navbar() {
                 Analytics
               </button>
             </Link>
+            <Link href="/ai-assistant">
+              <button className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
+                isActivePage('/ai-assistant') 
+                  ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300' 
+                  : 'text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+              }`}>
+                AI Assistant
+              </button>
+            </Link>
+            <Link href="/ai-platform">
+              <button className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
+                isActivePage('/ai-platform') 
+                  ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300' 
+                  : 'text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+              }`}>
+                🚀 AI Platform
+              </button>
+            </Link>
             <Link href="/settings">
               <button className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
                 isActivePage('/settings') 
@@ -90,10 +108,13 @@ export default function Navbar() {
             {/* Theme Toggle */}
             <button
               onClick={toggleTheme}
-              className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200"
+              className="flex items-center justify-center w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-300 hover:scale-105"
               title={`Switch to ${isDark ? 'light' : 'dark'} mode`}
+              aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
             >
-              {isDark ? '☀️' : '🌙'}
+              <span className="text-lg transition-transform duration-300">
+                {isDark ? '☀️' : '🌙'}
+              </span>
             </button>
 
             {/* Currency Selector */}

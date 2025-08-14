@@ -58,13 +58,18 @@ export default function TransactionList({ transactions = [] }: TransactionListPr
   };
 
   const sortedTransactions = [...transactions].sort((a, b) => {
-    let aValue = a[sortField];
-    let bValue = b[sortField];
+    let aValue: any = a[sortField];
+    let bValue: any = b[sortField];
     
     if (sortField === 'date') {
       aValue = new Date(a.date).getTime();
       bValue = new Date(b.date).getTime();
     }
+    
+    // Handle undefined values
+    if (aValue === undefined && bValue === undefined) return 0;
+    if (aValue === undefined) return 1;
+    if (bValue === undefined) return -1;
     
     if (sortDirection === 'asc') {
       return aValue > bValue ? 1 : -1;
@@ -90,11 +95,11 @@ export default function TransactionList({ transactions = [] }: TransactionListPr
   if (transactions.length === 0) {
     return (
       <div className="text-center py-16">
-        <div className="w-24 h-24 bg-gradient-to-br from-blue-100 to-indigo-200 rounded-3xl flex items-center justify-center mx-auto mb-6">
+        <div className="w-24 h-24 bg-gradient-to-br from-blue-100 to-indigo-200 dark:from-blue-800 dark:to-indigo-700 rounded-3xl flex items-center justify-center mx-auto mb-6">
           <span className="text-4xl">📊</span>
         </div>
-        <h3 className="text-xl font-bold text-gray-700 mb-2">No transactions yet</h3>
-        <p className="text-gray-500 font-medium">Start by adding your first transaction!</p>
+        <h3 className="text-xl font-bold text-gray-700 dark:text-gray-300 mb-2">No transactions yet</h3>
+        <p className="text-gray-500 dark:text-gray-400 font-medium">Start by adding your first transaction!</p>
       </div>
     );
   }
@@ -109,7 +114,7 @@ export default function TransactionList({ transactions = [] }: TransactionListPr
             className={`px-4 py-2 rounded-xl text-sm font-bold transition-all duration-300 ${
               filterType === 'all' 
                 ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg transform -translate-y-0.5' 
-                : 'bg-white/80 text-gray-600 hover:bg-blue-50 hover:text-blue-600 border border-gray-200'
+                : 'bg-white/80 dark:bg-gray-700/80 text-gray-600 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-400 border border-gray-200 dark:border-gray-600'
             }`}
           >
             📊 All ({transactions.length})
@@ -119,7 +124,7 @@ export default function TransactionList({ transactions = [] }: TransactionListPr
             className={`px-4 py-2 rounded-xl text-sm font-bold transition-all duration-300 ${
               filterType === 'income' 
                 ? 'bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-lg transform -translate-y-0.5' 
-                : 'bg-white/80 text-gray-600 hover:bg-emerald-50 hover:text-emerald-600 border border-gray-200'
+                : 'bg-white/80 dark:bg-gray-700/80 text-gray-600 dark:text-gray-300 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 hover:text-emerald-600 dark:hover:text-emerald-400 border border-gray-200 dark:border-gray-600'
             }`}
           >
             💰 Income ({transactions.filter(t => t.type === 'income').length})
@@ -129,14 +134,14 @@ export default function TransactionList({ transactions = [] }: TransactionListPr
             className={`px-4 py-2 rounded-xl text-sm font-bold transition-all duration-300 ${
               filterType === 'expense' 
                 ? 'bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg transform -translate-y-0.5' 
-                : 'bg-white/80 text-gray-600 hover:bg-red-50 hover:text-red-600 border border-gray-200'
+                : 'bg-white/80 dark:bg-gray-700/80 text-gray-600 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400 border border-gray-200 dark:border-gray-600'
             }`}
           >
             💸 Expenses ({transactions.filter(t => t.type === 'expense').length})
           </button>
         </div>
         
-        <div className="text-sm font-semibold text-gray-600 bg-white/80 px-4 py-2 rounded-xl border border-gray-200">
+        <div className="text-sm font-semibold text-gray-600 dark:text-gray-300 bg-white/80 dark:bg-gray-700/80 px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-600">
           Showing {filteredTransactions.length} of {transactions.length} transactions
         </div>
       </div>
@@ -144,7 +149,7 @@ export default function TransactionList({ transactions = [] }: TransactionListPr
       {/* Transaction Cards */}
       <div className="space-y-4 p-6">
         {filteredTransactions.map((transaction) => (
-          <div key={transaction._id} className="group bg-white/80 backdrop-blur-sm border border-white/20 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+          <div key={transaction._id} className="group bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-white/20 dark:border-gray-700/20 rounded-2xl p-6 shadow-lg hover:shadow-xl dark:hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg ${
@@ -155,20 +160,20 @@ export default function TransactionList({ transactions = [] }: TransactionListPr
                   <span className="text-2xl">{getCategoryEmoji(transaction.category)}</span>
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-gray-900 capitalize">{transaction.category}</h3>
-                  <p className="text-sm text-gray-600 font-medium">{transaction.note || 'No description'}</p>
-                  <p className="text-xs text-gray-500 font-medium">{format(new Date(transaction.date), 'MMM dd, yyyy')}</p>
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 capitalize">{transaction.category}</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-300 font-medium">{transaction.note || 'No description'}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">{format(new Date(transaction.date), 'MMM dd, yyyy')}</p>
                 </div>
               </div>
               
               <div className="text-right">
                 <div className={`text-2xl font-black ${
-                  transaction.type === 'income' ? 'text-emerald-600' : 'text-red-500'
+                  transaction.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500 dark:text-red-400'
                 }`}>
                   {transaction.type === 'income' ? '+' : '-'}${transaction.amount.toFixed(2)}
                 </div>
                 <div className={`text-xs font-bold uppercase tracking-wider ${
-                  transaction.type === 'income' ? 'text-emerald-600' : 'text-red-500'
+                  transaction.type === 'income' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500 dark:text-red-400'
                 }`}>
                   {transaction.type}
                 </div>

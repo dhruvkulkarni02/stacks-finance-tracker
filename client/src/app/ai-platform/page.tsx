@@ -1,6 +1,4 @@
 // client/src/app/ai-platform/page.tsx
-'use client';
-
 import React from 'react';
 import AdvancedAIAssistant from '@/components/ai/AdvancedAIAssistant';
 
@@ -22,8 +20,3 @@ export default function AIPlatformPage() {
     </div>
   );
 }
-
-export const metadata = {
-  title: 'AI Financial Platform - Stacks Finance Tracker',
-  description: 'Advanced AI-powered financial management with real-time monitoring, smart budgeting, and intelligent insights.',
-};

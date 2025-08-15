@@ -275,9 +275,9 @@ export default function RegisterPage() {
         </div>
 
         {/* Password Requirements */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
-          <div className="text-sm text-blue-800">
-            <strong>Password Requirements:</strong> At least 6 characters long
+        <div className="bg-white border border-gray-300 rounded-lg p-4 text-center shadow-sm">
+          <div className="text-sm text-gray-700">
+            <strong className="text-gray-900">Password Requirements:</strong> At least 6 characters long
           </div>
         </div>
       </div>

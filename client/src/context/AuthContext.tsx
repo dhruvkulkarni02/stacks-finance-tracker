@@ -56,17 +56,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // Initialize auth state from localStorage
   useEffect(() => {
-    console.log("Initializing auth state");
+    // Initializing auth state
     const initAuth = () => {
       try {
         if (typeof window !== 'undefined') {
           const storedUser = localStorage.getItem('user');
           
           if (storedUser) {
-            console.log("Found stored user");
+            // Found stored user
             setUser(JSON.parse(storedUser));
           } else {
-            console.log("No stored user found");
+            // No stored user found
           }
         }
       } catch (err) {
@@ -85,14 +85,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(true);
       setError(null);
       
-      console.log("Logging in with:", email);
+
       const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/users/login`, {
         email,
         password,
       });
       
       const userData = response.data;
-      console.log("Login successful:", userData.name);
+
       
       // Store user in localStorage
       localStorage.setItem('user', JSON.stringify(userData));
@@ -139,7 +139,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // Logout function
   const logout = () => {
-    console.log("Logging out");
+
     // Remove user from localStorage
     localStorage.removeItem('user');
     
@@ -150,7 +150,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (typeof window !== 'undefined') {
       window.location.href = '/login';
     }
-    console.log("User logged out, redirecting...");
+
   };
 
   return (

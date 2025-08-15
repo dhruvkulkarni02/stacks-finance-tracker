@@ -5,8 +5,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 // server/src/routes/transactions.ts
 const express_1 = __importDefault(require("express"));
+const auth_1 = require("../middleware/auth");
 const transactions_1 = require("../controllers/transactions");
 const router = express_1.default.Router();
+// Apply auth middleware to all routes
+router.use(auth_1.protect);
 router.route('/')
     .get(transactions_1.getTransactions)
     .post(transactions_1.createTransaction);

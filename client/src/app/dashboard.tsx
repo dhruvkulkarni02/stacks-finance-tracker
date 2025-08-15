@@ -9,6 +9,9 @@ import TransactionList from '@/components/transactions/TransactionList';
 import SpendingInsights from '@/components/insights/SpendingInsights';
 import BudgetManager from '@/components/budgets/BudgetManager';
 import FinancialGoalsManager from '@/components/goals/FinancialGoalsManager';
+import EnhancedDashboard from '@/components/dashboard/EnhancedDashboard';
+import SmartNotifications from '@/components/notifications/SmartNotifications';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { getSummary, getTransactions } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import { useCurrency } from '@/context/CurrencyContext';
@@ -97,8 +100,10 @@ export default function Home() {
   // If not authenticated or loading auth state, show loading
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <div className="max-w-7xl mx-auto p-6">
+          <LoadingSpinner variant="skeleton" text="Loading your financial dashboard..." />
+        </div>
       </div>
     );
   }
@@ -111,9 +116,9 @@ export default function Home() {
   // Loading transactions data
   if (fetchLoading) {
     return (
-      <div className="container mx-auto p-4">
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <div className="max-w-7xl mx-auto p-6">
+          <LoadingSpinner variant="skeleton" text="Loading your financial data..." />
         </div>
       </div>
     );
@@ -247,7 +252,17 @@ export default function Home() {
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
             {/* Tab Navigation */}
             <div className="border-b border-gray-200 dark:border-gray-700">
-              <div className="flex space-x-1 p-4">
+              <div className="flex flex-wrap space-x-1 p-4">
+                <button
+                  onClick={() => setActiveTab('overview')}
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors duration-200 ${
+                    activeTab === 'overview'
+                      ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300'
+                      : 'text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  }`}
+                >
+                  🏠 Smart Dashboard
+                </button>
                 <button
                   onClick={() => setActiveTab('transactions')}
                   className={`px-4 py-2 rounded-lg font-medium transition-colors duration-200 ${
@@ -256,7 +271,7 @@ export default function Home() {
                       : 'text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700'
                   }`}
                 >
-                  📊 Transactions
+                  � Transactions
                 </button>
                 <button
                   onClick={() => setActiveTab('budgets')}
@@ -278,34 +293,37 @@ export default function Home() {
                 >
                   🎯 Goals
                 </button>
-                <button
-                  onClick={() => setActiveTab('search')}
-                  className={`px-4 py-2 rounded-lg font-medium transition-colors duration-200 ${
-                    activeTab === 'search'
-                      ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300'
-                      : 'text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700'
-                  }`}
-                >
-                  🔍 Search & Filter
-                </button>
               </div>
             </div>
             
             {/* Tab Content */}
             <div className="p-6">
+              {activeTab === 'overview' && (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div className="lg:col-span-2">
+                      <EnhancedDashboard />
+                    </div>
+                    <div>
+                      <SmartNotifications />
+                    </div>
+                  </div>
+                </div>
+              )}
+              
               {activeTab === 'transactions' && (
                 <div>
                   <div className="mb-6">
-                    <h2 className="text-2xl font-bold text-gray-900 mb-1">Recent Transactions</h2>
-                    <p className="text-gray-600 font-medium">{transactions.length} transaction(s) this month</p>
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">Recent Transactions</h2>
+                    <p className="text-gray-600 dark:text-gray-400 font-medium">{transactions.length} transaction(s) this month</p>
                   </div>
                   {transactions.length > 0 ? (
                     <TransactionList transactions={transactions} />
                   ) : (
                     <div className="text-center py-12">
                       <div className="text-6xl mb-4">💳</div>
-                      <h3 className="text-lg font-medium text-gray-900 mb-2">No transactions yet</h3>
-                      <p className="text-gray-500 mb-6">Add your first transaction to start tracking your finances!</p>
+                      <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No transactions yet</h3>
+                      <p className="text-gray-500 dark:text-gray-400 mb-6">Add your first transaction to start tracking your finances!</p>
                       <Link href="/add-transaction">
                         <button className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium transition-colors">
                           Add Your First Transaction

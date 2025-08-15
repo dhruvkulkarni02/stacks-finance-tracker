@@ -64,6 +64,24 @@ const UserSchema = new mongoose_1.Schema({
         required: true,
         minlength: 6,
     },
+    preferences: {
+        currency: {
+            type: String,
+            default: 'USD',
+        },
+        theme: {
+            type: String,
+            default: 'light',
+        },
+        notifications: {
+            type: Boolean,
+            default: true,
+        }
+    },
+    lastLogin: {
+        type: Date,
+        default: Date.now,
+    }
 }, { timestamps: true });
 // Hash password before saving
 UserSchema.pre('save', function (next) {
@@ -71,15 +89,28 @@ UserSchema.pre('save', function (next) {
         if (!this.isModified('password')) {
             return next();
         }
-        const salt = yield bcryptjs_1.default.genSalt(10);
-        this.password = yield bcryptjs_1.default.hash(this.password, salt);
-        next();
+        try {
+            const salt = yield bcryptjs_1.default.genSalt(10);
+            this.password = yield bcryptjs_1.default.hash(this.password, salt);
+            next();
+        }
+        catch (error) {
+            console.error("Error hashing password:", error);
+            next(error);
+        }
     });
 });
 // Method to check if entered password matches
 UserSchema.methods.matchPassword = function (enteredPassword) {
     return __awaiter(this, void 0, void 0, function* () {
-        return yield bcryptjs_1.default.compare(enteredPassword, this.password);
+        try {
+            const isMatch = yield bcryptjs_1.default.compare(enteredPassword, this.password);
+            return isMatch;
+        }
+        catch (error) {
+            console.error("Error comparing passwords:", error);
+            return false;
+        }
     });
 };
 exports.default = mongoose_1.default.model('User', UserSchema);

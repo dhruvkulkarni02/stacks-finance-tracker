@@ -4,8 +4,8 @@
 import { ReactNode, useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 import { AuthProvider } from '@/context/AuthContext';
-import { ThemeProvider } from '@/context/ThemeContext';
 import { CurrencyProvider } from '@/context/CurrencyContext';
 
 export default function ClientLayout({ children }: { children: ReactNode }) {
@@ -20,28 +20,29 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
 
   if (!mounted) {
     return (
-      <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
       </div>
     );
   }
 
   return (
-    <ThemeProvider>
-      <CurrencyProvider>
-        <AuthProvider>
+    <CurrencyProvider>
+      <AuthProvider>
+        <div className="min-h-screen bg-gray-50 text-gray-900">
           {isAuthPage ? (
             <main>{children}</main>
           ) : (
             <div className="flex flex-col min-h-screen">
               <Navbar />
-              <main className="flex-1">
+              <main className="flex-1 bg-gray-50">
                 {children}
               </main>
+              <Footer />
             </div>
           )}
-        </AuthProvider>
-      </CurrencyProvider>
-    </ThemeProvider>
+        </div>
+      </AuthProvider>
+    </CurrencyProvider>
   );
 }

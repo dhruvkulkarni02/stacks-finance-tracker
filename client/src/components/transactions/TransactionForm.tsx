@@ -21,6 +21,7 @@ export default function TransactionForm({
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -36,7 +37,7 @@ export default function TransactionForm({
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validate form
@@ -59,44 +60,75 @@ export default function TransactionForm({
       return;
     }
     
-    // Submit with amount as number
-    onSubmit({
-      ...formData,
-      amount: Number(formData.amount),
-    });
+    try {
+      // Submit with amount as number
+      await onSubmit({
+        ...formData,
+        amount: Number(formData.amount),
+      });
+      
+      // Show success and reset form
+      setShowSuccess(true);
+      setFormData({
+        type: 'expense',
+        amount: '',
+        category: '',
+        date: new Date().toISOString().split('T')[0],
+        note: '',
+      });
+      
+      // Hide success message after 3 seconds
+      setTimeout(() => setShowSuccess(false), 3000);
+    } catch (error) {
+      console.error('Error submitting transaction:', error);
+    }
   };
 
   // Categories with emojis
   const categoryOptions = {
     expense: [
-      { value: 'groceries', label: '🛒 Groceries', color: 'bg-green-50 border-green-200' },
-      { value: 'food', label: '🍕 Food & Dining', color: 'bg-orange-50 border-orange-200' },
-      { value: 'rent', label: '🏠 Rent & Housing', color: 'bg-blue-50 border-blue-200' },
-      { value: 'utilities', label: '⚡ Utilities', color: 'bg-yellow-50 border-yellow-200' },
-      { value: 'transport', label: '🚗 Transportation', color: 'bg-purple-50 border-purple-200' },
-      { value: 'entertainment', label: '🎬 Entertainment', color: 'bg-pink-50 border-pink-200' },
-      { value: 'shopping', label: '🛍️ Shopping', color: 'bg-indigo-50 border-indigo-200' },
-      { value: 'health', label: '🏥 Healthcare', color: 'bg-red-50 border-red-200' },
-      { value: 'education', label: '📚 Education', color: 'bg-teal-50 border-teal-200' },
-      { value: 'travel', label: '✈️ Travel', color: 'bg-cyan-50 border-cyan-200' },
-      { value: 'subscription', label: '📱 Subscriptions', color: 'bg-gray-50 border-gray-200' },
-      { value: 'other', label: '💫 Other', color: 'bg-gray-50 border-gray-200' }
+      { value: 'groceries', label: '🛒 Groceries', color: 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700 text-green-800 dark:text-green-200' },
+      { value: 'food', label: '🍕 Food & Dining', color: 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-700 text-orange-800 dark:text-orange-200' },
+      { value: 'rent', label: '🏠 Rent & Housing', color: 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700 text-blue-800 dark:text-blue-200' },
+      { value: 'utilities', label: '⚡ Utilities', color: 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-700 text-yellow-800 dark:text-yellow-200' },
+      { value: 'transport', label: '🚗 Transportation', color: 'bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-700 text-purple-800 dark:text-purple-200' },
+      { value: 'entertainment', label: '🎬 Entertainment', color: 'bg-pink-50 dark:bg-pink-900/20 border-pink-200 dark:border-pink-700 text-pink-800 dark:text-pink-200' },
+      { value: 'shopping', label: '🛍️ Shopping', color: 'bg-indigo-50 dark:bg-indigo-900/20 border-indigo-200 dark:border-indigo-700 text-indigo-800 dark:text-indigo-200' },
+      { value: 'health', label: '🏥 Healthcare', color: 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-700 text-red-800 dark:text-red-200' },
+      { value: 'education', label: '📚 Education', color: 'bg-teal-50 dark:bg-teal-900/20 border-teal-200 dark:border-teal-700 text-teal-800 dark:text-teal-200' },
+      { value: 'travel', label: '✈️ Travel', color: 'bg-cyan-50 dark:bg-cyan-900/20 border-cyan-200 dark:border-cyan-700 text-cyan-800 dark:text-cyan-200' },
+      { value: 'subscription', label: '📱 Subscriptions', color: 'bg-gray-50 dark:bg-gray-900/20 border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200' },
+      { value: 'other', label: '💫 Other', color: 'bg-gray-50 dark:bg-gray-900/20 border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200' }
     ],
     income: [
-      { value: 'salary', label: '💼 Salary', color: 'bg-emerald-50 border-emerald-200' },
-      { value: 'freelance', label: '💻 Freelance', color: 'bg-blue-50 border-blue-200' },
-      { value: 'investment', label: '📈 Investment', color: 'bg-green-50 border-green-200' },
-      { value: 'gift', label: '🎁 Gift', color: 'bg-pink-50 border-pink-200' },
-      { value: 'refund', label: '🔄 Refund', color: 'bg-yellow-50 border-yellow-200' },
-      { value: 'other', label: '💰 Other Income', color: 'bg-gray-50 border-gray-200' }
+      { value: 'salary', label: '💼 Salary', color: 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-700 text-emerald-800 dark:text-emerald-200' },
+      { value: 'freelance', label: '💻 Freelance', color: 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700 text-blue-800 dark:text-blue-200' },
+      { value: 'investment', label: '📈 Investment', color: 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700 text-green-800 dark:text-green-200' },
+      { value: 'gift', label: '🎁 Gift', color: 'bg-pink-50 dark:bg-pink-900/20 border-pink-200 dark:border-pink-700 text-pink-800 dark:text-pink-200' },
+      { value: 'refund', label: '🔄 Refund', color: 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-700 text-yellow-800 dark:text-yellow-200' },
+      { value: 'other', label: '💰 Other Income', color: 'bg-gray-50 dark:bg-gray-900/20 border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200' }
     ]
   };
 
   const categories = categoryOptions[formData.type as keyof typeof categoryOptions];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-6">
-      <div className="max-w-2xl mx-auto">
+    <div className="max-w-2xl mx-auto">
+      {/* Success Message */}
+      {showSuccess && (
+        <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-xl">
+          <div className="flex items-center">
+            <span className="text-2xl mr-3">✅</span>
+            <div>
+              <h3 className="font-semibold text-green-800 dark:text-green-200">Transaction Added!</h3>
+              <p className="text-sm text-green-600 dark:text-green-300">Your transaction has been saved successfully.</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Main Form Card */}
+      <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg rounded-2xl shadow-xl border border-white/20 dark:border-gray-700/20 p-8">
         <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-2xl border border-white/20 overflow-hidden">
           {/* Header */}
           <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-8 text-white">
@@ -193,8 +225,8 @@ export default function TransactionForm({
                 key={category.value}
                 className={`flex items-center p-3 rounded-lg border-2 cursor-pointer transition-all ${
                   formData.category === category.value
-                    ? `${category.color} border-current shadow-sm scale-105`
-                    : 'bg-white border-gray-200 hover:bg-gray-50 hover:border-gray-300'
+                    ? `${category.color} shadow-sm scale-105`
+                    : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-500 text-gray-700 dark:text-gray-300'
                 }`}
               >
                 <input

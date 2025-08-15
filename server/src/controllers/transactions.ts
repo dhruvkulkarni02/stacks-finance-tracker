@@ -5,14 +5,17 @@ import Transaction from '../models/Transaction';
 // @route   GET /api/transactions
 export const getTransactions = async (req: Request, res: Response) => {
   try {
-    const { user, month, category, type, search, minAmount, maxAmount, startDate, endDate, limit, page } = req.query;
-
-    if (!user) {
-      return res.status(400).json({ message: 'User ID is required' });
+    const { month, category, type, search, minAmount, maxAmount, startDate, endDate, limit, page } = req.query;
+    
+    // Get userId from auth middleware
+    const userId = (req as any).userId;
+    
+    if (!userId) {
+      return res.status(401).json({ message: 'Authentication required' });
     }
 
     // Build query
-    const query: any = { userId: user };
+    const query: any = { userId: userId };
 
     // Add month filter if provided
     if (month) {
@@ -85,7 +88,13 @@ export const getTransactions = async (req: Request, res: Response) => {
 // @route   POST /api/transactions
 export const createTransaction = async (req: Request, res: Response) => {
   try {
-    const transaction = new Transaction(req.body);
+    const userId = (req as any).userId;
+    const transactionData = {
+      ...req.body,
+      userId: userId
+    };
+    
+    const transaction = new Transaction(transactionData);
     const savedTransaction = await transaction.save();
     res.status(201).json(savedTransaction);
   } catch (error) {

@@ -66,6 +66,40 @@ export default function AdvancedCharts({ transactions }: AdvancedChartsProps) {
 
   const totalExpenses = categoryData.reduce((sum, cat) => sum + cat.amount, 0);
 
+  // If no data, show placeholder
+  if (transactions.length === 0) {
+    return (
+      <div className="space-y-8">
+        <div className="text-center py-16">
+          <div className="text-6xl mb-4">📊</div>
+          <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-2">
+            No Transaction Data
+          </h3>
+          <p className="text-gray-600 dark:text-gray-400 mb-8">
+            Add some transactions to see detailed analytics and charts here.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/30 p-6 rounded-2xl border border-blue-200 dark:border-blue-700">
+              <div className="text-3xl mb-3">🍰</div>
+              <h4 className="font-bold text-blue-700 dark:text-blue-300 mb-2">Category Breakdown</h4>
+              <p className="text-sm text-blue-600 dark:text-blue-400">See where your money goes with visual category analysis</p>
+            </div>
+            <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/20 dark:to-emerald-800/30 p-6 rounded-2xl border border-emerald-200 dark:border-emerald-700">
+              <div className="text-3xl mb-3">📊</div>
+              <h4 className="font-bold text-emerald-700 dark:text-emerald-300 mb-2">Spending Comparison</h4>
+              <p className="text-sm text-emerald-600 dark:text-emerald-400">Compare spending across different categories</p>
+            </div>
+            <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/30 p-6 rounded-2xl border border-purple-200 dark:border-purple-700">
+              <div className="text-3xl mb-3">📈</div>
+              <h4 className="font-bold text-purple-700 dark:text-purple-300 mb-2">Trend Analysis</h4>
+              <p className="text-sm text-purple-600 dark:text-purple-400">Track income and expense trends over time</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const categoryColors = [
     'bg-gradient-to-r from-blue-500 to-blue-600',
     'bg-gradient-to-r from-emerald-500 to-emerald-600',
@@ -108,30 +142,63 @@ export default function AdvancedCharts({ transactions }: AdvancedChartsProps) {
           <div>
             <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6">Spending by Category</h3>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Pie Chart (Simple CSS-based) */}
+              {/* Pie Chart (SVG-based) */}
               <div className="flex items-center justify-center">
-                <div className="relative w-64 h-64">
-                  {categoryData.slice(0, 6).map((cat, index) => {
-                    const percentage = (cat.amount / totalExpenses) * 100;
-                    const rotation = categoryData.slice(0, index).reduce((sum, c) => sum + (c.amount / totalExpenses) * 360, 0);
-                    
-                    return (
-                      <div
-                        key={cat.category}
-                        className={`absolute w-full h-full rounded-full ${categoryColors[index]} opacity-80`}
-                        style={{
-                          clipPath: `polygon(50% 50%, 50% 0%, ${50 + 50 * Math.sin((percentage / 100) * 2 * Math.PI)}% ${50 - 50 * Math.cos((percentage / 100) * 2 * Math.PI)}%, 50% 50%)`,
-                          transform: `rotate(${rotation}deg)`
-                        }}
-                      />
-                    );
-                  })}
-                  <div className="absolute inset-4 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center">
-                    <div className="text-center">
-                      <div className="text-2xl font-black text-gray-900 dark:text-white">
-                        {formatAmount(totalExpenses)}
+                <div className="relative">
+                  <svg width="256" height="256" viewBox="0 0 256 256" className="transform -rotate-90">
+                    {categoryData.slice(0, 6).map((cat, index) => {
+                      const percentage = (cat.amount / totalExpenses) * 100;
+                      const angle = (percentage / 100) * 360;
+                      const startAngle = categoryData.slice(0, index).reduce((sum, c) => sum + (c.amount / totalExpenses) * 360, 0);
+                      
+                      const radius = 100;
+                      const centerX = 128;
+                      const centerY = 128;
+                      
+                      const startAngleRad = (startAngle * Math.PI) / 180;
+                      const endAngleRad = ((startAngle + angle) * Math.PI) / 180;
+                      
+                      const x1 = centerX + radius * Math.cos(startAngleRad);
+                      const y1 = centerY + radius * Math.sin(startAngleRad);
+                      const x2 = centerX + radius * Math.cos(endAngleRad);
+                      const y2 = centerY + radius * Math.sin(endAngleRad);
+                      
+                      const largeArcFlag = angle > 180 ? 1 : 0;
+                      
+                      const pathData = [
+                        `M ${centerX} ${centerY}`,
+                        `L ${x1} ${y1}`,
+                        `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}`,
+                        `Z`
+                      ].join(' ');
+
+                      const colors = [
+                        '#3B82F6', '#10B981', '#8B5CF6', '#F59E0B', 
+                        '#EF4444', '#EC4899', '#6366F1', '#84CC16'
+                      ];
+                      
+                      return (
+                        <path
+                          key={cat.category}
+                          d={pathData}
+                          fill={colors[index]}
+                          stroke="white"
+                          strokeWidth="2"
+                          className="hover:opacity-80 transition-opacity duration-200"
+                        />
+                      );
+                    })}
+                  </svg>
+                  
+                  {/* Center label */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-center bg-white dark:bg-gray-800 rounded-full w-20 h-20 flex items-center justify-center border-2 border-gray-200 dark:border-gray-600">
+                      <div>
+                        <div className="text-sm font-bold text-gray-900 dark:text-white">
+                          {formatAmount(totalExpenses).replace(/,/g, '')}
+                        </div>
+                        <div className="text-xs text-gray-600 dark:text-gray-400">Total</div>
                       </div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">Total Spent</div>
                     </div>
                   </div>
                 </div>

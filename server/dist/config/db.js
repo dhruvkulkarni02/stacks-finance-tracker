@@ -12,14 +12,19 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+// server/src/config/db.ts
 const mongoose_1 = __importDefault(require("mongoose"));
 const connectDB = () => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     try {
-        const conn = yield mongoose_1.default.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/stacks-finance');
+        const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/stacks-finance';
+        console.log(`Connecting to MongoDB: ${mongoUri.replace(/([^:]+:\/\/[^:]+:)[^@]+@/, '$1****@')}`);
+        const conn = yield mongoose_1.default.connect(mongoUri);
         console.log(`MongoDB Connected: ${conn.connection.host}`);
     }
     catch (error) {
         console.error(`Error connecting to MongoDB: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        console.error(`Using MongoDB URI: ${(_a = process.env.MONGODB_URI) === null || _a === void 0 ? void 0 : _a.replace(/([^:]+:\/\/[^:]+:)[^@]+@/, '$1****@')}`);
         process.exit(1);
     }
 });

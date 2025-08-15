@@ -343,7 +343,7 @@ export const searchTransactions = async (filters: {
     });
     
     const url = `/transactions?${params.toString()}`;
-    console.log('Searching transactions with URL:', url);
+
     
     const response = await api.get(url);
     

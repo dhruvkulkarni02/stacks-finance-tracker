@@ -17,57 +17,74 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>('light');
   const [mounted, setMounted] = useState(false);
 
+  // Get the initial theme
+  const getInitialTheme = (): Theme => {
+    if (typeof window === 'undefined') return 'light';
+    
+    // Check what's currently applied to the HTML element
+    const htmlElement = document.documentElement;
+    if (htmlElement.classList.contains('dark')) {
+      return 'dark';
+    }
+    
+    // Check localStorage
+    const savedTheme = localStorage.getItem('theme') as Theme;
+    if (savedTheme && (savedTheme === 'light' || savedTheme === 'dark')) {
+      return savedTheme;
+    }
+    
+    // Check system preference
+    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    return systemPrefersDark ? 'dark' : 'light';
+  };
+
   // Apply theme to document
   const applyTheme = (newTheme: Theme) => {
     if (typeof document !== 'undefined') {
       const root = document.documentElement;
       
-      // Remove all theme classes first
+      // Remove all theme classes
       root.classList.remove('light', 'dark');
       
       // Add the new theme class
       root.classList.add(newTheme);
       
-      // Also set a data attribute for additional styling options
+      // Set data attribute
       root.setAttribute('data-theme', newTheme);
       
       // Save to localStorage
       localStorage.setItem('theme', newTheme);
       
-      // Force a repaint to ensure styles are applied
-      root.style.setProperty('color-scheme', newTheme);
+      // Set color scheme for native elements
+      root.style.colorScheme = newTheme;
+      
+      console.log(`Theme applied: ${newTheme}, HTML classes: ${root.className}`);
     }
   };
 
-  // Initialize theme
+  // Initialize theme on mount
   useEffect(() => {
+    const initialTheme = getInitialTheme();
+    setTheme(initialTheme);
+    applyTheme(initialTheme);
     setMounted(true);
-    
-    if (typeof window !== 'undefined') {
-      // Get saved theme or system preference
-      const savedTheme = localStorage.getItem('theme') as Theme;
-      const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      const initialTheme = savedTheme || (systemPrefersDark ? 'dark' : 'light');
-      
-      setTheme(initialTheme);
-      applyTheme(initialTheme);
-    }
   }, []);
 
-  // Apply theme when it changes
-  useEffect(() => {
-    if (mounted) {
-      applyTheme(theme);
-    }
-  }, [theme, mounted]);
-
+  // Toggle theme function
   const toggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
+    console.log(`Toggling theme from ${theme} to ${newTheme}`);
     setTheme(newTheme);
+    applyTheme(newTheme);
   };
 
+  // Prevent rendering until mounted to avoid hydration mismatch
   if (!mounted) {
-    return <div className="contents">{children}</div>;
+    return (
+      <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      </div>
+    );
   }
 
   return (

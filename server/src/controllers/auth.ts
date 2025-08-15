@@ -15,18 +15,18 @@ const generateToken = (id: string) => {
 export const registerUser = async (req: Request, res: Response) => {
   try {
     const { name, email, password } = req.body;
-    console.log("Registration attempt for:", email);
+
 
     // Add validation for required fields
     if (!name || !email || !password) {
-      console.log("Missing required fields");
+
       return res.status(400).json({ message: 'Please provide all required fields' });
     }
 
     // Check if user already exists
     const userExists = await User.findOne({ email });
     if (userExists) {
-      console.log("User already exists");
+
       return res.status(400).json({ message: 'User already exists' });
     }
 
@@ -45,7 +45,7 @@ export const registerUser = async (req: Request, res: Response) => {
     });
 
     if (user) {
-      console.log("User created successfully:", user.name);
+
       res.status(201).json({
         _id: user._id,
         name: user.name,
@@ -53,7 +53,7 @@ export const registerUser = async (req: Request, res: Response) => {
         token: generateToken(user._id),
       });
     } else {
-      console.log("Invalid user data");
+
       res.status(400).json({ message: 'Invalid user data' });
     }
   } catch (error) {
@@ -97,11 +97,11 @@ export const loginUser = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
     
-    console.log("Login attempt for:", email);
+
 
     // Find user by email
     const user = await User.findOne({ email });
-    console.log("User found:", user ? "Yes" : "No");
+
     
     // Check if user exists and password matches
     if (user && (await user.matchPassword(password))) {
@@ -110,7 +110,7 @@ export const loginUser = async (req: Request, res: Response) => {
       await user.save();
       
       const token = generateToken(user._id);
-      console.log("Token generated successfully");
+
       
       res.json({
         _id: user._id,
@@ -119,7 +119,7 @@ export const loginUser = async (req: Request, res: Response) => {
         token: token,
       });
     } else {
-      console.log("Invalid credentials");
+
       res.status(401).json({ message: 'Invalid email or password' });
     }
   } catch (error) {

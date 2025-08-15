@@ -18,19 +18,68 @@ const Transaction_1 = __importDefault(require("../models/Transaction"));
 // @route   GET /api/transactions
 const getTransactions = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { user, month } = req.query;
-        if (!user) {
-            return res.status(400).json({ message: 'User ID is required' });
+        const { month, category, type, search, minAmount, maxAmount, startDate, endDate, limit, page } = req.query;
+        // Get userId from auth middleware
+        const userId = req.userId;
+        if (!userId) {
+            return res.status(401).json({ message: 'Authentication required' });
         }
         // Build query
-        const query = { userId: user };
+        const query = { userId: userId };
         // Add month filter if provided
         if (month) {
             const monthStr = month;
             query.date = { $regex: `^${monthStr}` };
         }
-        const transactions = yield Transaction_1.default.find(query).sort({ date: -1 });
-        res.json(transactions);
+        // Add date range filter
+        if (startDate || endDate) {
+            query.date = {};
+            if (startDate)
+                query.date.$gte = new Date(startDate);
+            if (endDate)
+                query.date.$lte = new Date(endDate);
+        }
+        // Add category filter
+        if (category && category !== 'all') {
+            query.category = category;
+        }
+        // Add type filter
+        if (type && type !== 'all') {
+            query.type = type;
+        }
+        // Add amount range filter
+        if (minAmount || maxAmount) {
+            query.amount = {};
+            if (minAmount)
+                query.amount.$gte = parseFloat(minAmount);
+            if (maxAmount)
+                query.amount.$lte = parseFloat(maxAmount);
+        }
+        // Add text search
+        if (search) {
+            query.$or = [
+                { category: { $regex: search, $options: 'i' } },
+                { note: { $regex: search, $options: 'i' } }
+            ];
+        }
+        // Pagination
+        const pageNum = parseInt(page) || 1;
+        const limitNum = parseInt(limit) || 50;
+        const skip = (pageNum - 1) * limitNum;
+        const transactions = yield Transaction_1.default.find(query)
+            .sort({ date: -1 })
+            .skip(skip)
+            .limit(limitNum);
+        // Get total count for pagination
+        const total = yield Transaction_1.default.countDocuments(query);
+        res.json({
+            transactions,
+            pagination: {
+                current: pageNum,
+                pages: Math.ceil(total / limitNum),
+                total
+            }
+        });
     }
     catch (error) {
         res.status(500).json({
@@ -44,7 +93,9 @@ exports.getTransactions = getTransactions;
 // @route   POST /api/transactions
 const createTransaction = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const transaction = new Transaction_1.default(req.body);
+        const userId = req.userId;
+        const transactionData = Object.assign(Object.assign({}, req.body), { userId: userId });
+        const transaction = new Transaction_1.default(transactionData);
         const savedTransaction = yield transaction.save();
         res.status(201).json(savedTransaction);
     }

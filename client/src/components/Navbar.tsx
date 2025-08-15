@@ -4,14 +4,12 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { useTheme } from '@/context/ThemeContext';
 import { useCurrency } from '@/context/CurrencyContext';
 import { useState, useEffect } from 'react';
 
 export default function Navbar() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
-  const { theme, toggleTheme, isDark } = useTheme();
   const { currency, currencies, setCurrency } = useCurrency();
   const [showCurrencyDropdown, setShowCurrencyDropdown] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -31,7 +29,7 @@ export default function Navbar() {
   const isActivePage = (path: string) => pathname === path;
 
   return (
-    <nav className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50 transition-colors duration-300">
+    <nav className="bg-white border-b border-gray-200 sticky top-0 z-50 transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo Section */}
@@ -40,7 +38,7 @@ export default function Navbar() {
               <div className="text-xl font-bold bg-blue-500 text-white w-10 h-10 rounded-lg flex items-center justify-center">
                 $
               </div>
-              <span className="text-xl font-bold text-gray-900 dark:text-white">Stacks</span>
+              <span className="text-xl font-bold text-gray-900">Stacks</span>
             </Link>
           </div>
 
@@ -52,7 +50,7 @@ export default function Navbar() {
                   ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300' 
                   : 'text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700'
               }`}>
-                Dashboard
+                📊 Dashboard
               </button>
             </Link>
             <Link href="/add-transaction">
@@ -61,7 +59,7 @@ export default function Navbar() {
                   ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300' 
                   : 'text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700'
               }`}>
-                Add
+                ➕ Add Transaction
               </button>
             </Link>
             <Link href="/analytics">
@@ -70,7 +68,16 @@ export default function Navbar() {
                   ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300' 
                   : 'text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700'
               }`}>
-                Analytics
+                📈 Analytics
+              </button>
+            </Link>
+            <Link href="/budgets">
+              <button className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
+                isActivePage('/budgets') 
+                  ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300' 
+                  : 'text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+              }`}>
+                💰 Budgets
               </button>
             </Link>
             <Link href="/ai-platform">
@@ -79,7 +86,7 @@ export default function Navbar() {
                   ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300' 
                   : 'text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-700'
               }`}>
-                🚀 AI Platform
+                🤖 AI Assistant
               </button>
             </Link>
             <Link href="/settings">
@@ -95,24 +102,11 @@ export default function Navbar() {
           
           {/* Right Controls */}
           <div className="flex items-center space-x-4">
-
-            {/* Theme Toggle */}
-            <button
-              onClick={toggleTheme}
-              className="flex items-center justify-center w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-300 hover:scale-105"
-              title={`Switch to ${isDark ? 'light' : 'dark'} mode`}
-              aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
-            >
-              <span className="text-lg transition-transform duration-300">
-                {isDark ? '☀️' : '🌙'}
-              </span>
-            </button>
-
             {/* Currency Selector */}
             <div className="relative">
               <button
                 onClick={() => setShowCurrencyDropdown(!showCurrencyDropdown)}
-                className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200"
+                className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors duration-200"
               >
                 <span>{currency.symbol}</span>
                 <span className="font-medium">{currency.code}</span>
@@ -120,7 +114,7 @@ export default function Navbar() {
               </button>
               
               {showCurrencyDropdown && (
-                <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50 max-h-64 overflow-y-auto">
+                <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 z-50 max-h-64 overflow-y-auto">
                   {currencies.map((curr) => (
                     <button
                       key={curr.code}
@@ -128,8 +122,8 @@ export default function Navbar() {
                         setCurrency(curr);
                         setShowCurrencyDropdown(false);
                       }}
-                      className={`w-full flex items-center justify-between px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors first:rounded-t-lg last:rounded-b-lg ${
-                        currency.code === curr.code ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'
+                      className={`w-full flex items-center justify-between px-4 py-3 hover:bg-gray-100 transition-colors first:rounded-t-lg last:rounded-b-lg ${
+                        currency.code === curr.code ? 'bg-blue-50 text-blue-600' : 'text-gray-700'
                       }`}
                     >
                       <div className="flex items-center space-x-3">
@@ -154,7 +148,7 @@ export default function Navbar() {
                   <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center text-sm font-bold text-white">
                     {user.name?.charAt(0).toUpperCase()}
                   </div>
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{user.name}</span>
+                  <span className="text-sm font-medium text-gray-700">{user.name}</span>
                 </div>
                 <button
                   onClick={handleLogout}

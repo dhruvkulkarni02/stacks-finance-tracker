@@ -97,10 +97,44 @@ const AdvancedAIAssistant: React.FC = () => {
   const loadDashboardData = async () => {
     try {
       const userData = JSON.parse(localStorage.getItem('user') || '{}');
+      if (!userData.id) {
+        console.error('No user ID found');
+        return;
+      }
       const response = await api.get(`/ai-advanced/dashboard/${userData.id}`);
       setDashboardData(response.data);
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
+      // Set some fallback data so the UI still works
+      setDashboardData({
+        summary: {
+          monthlyIncome: '$0',
+          monthlyExpenses: '$0', 
+          savingsRate: '0%',
+          totalTransactions: 0,
+          activeGoals: 0
+        },
+        healthScore: {
+          overall: 0,
+          breakdown: {
+            budgetAdherence: 0,
+            savingsRate: 0,
+            debtManagement: 0,
+            investmentDiversification: 0,
+            emergencyFund: 0
+          },
+          trends: {
+            improving: [],
+            declining: [],
+            stable: []
+          },
+          recommendations: []
+        },
+        insights: [],
+        anomalies: [],
+        upcomingBills: [],
+        investmentRecommendations: []
+      });
     } finally {
       setLoading(false);
     }
@@ -124,6 +158,109 @@ What would you like to discuss about your finances today?`,
     setChatMessages([welcomeMessage]);
   };
 
+  const generateFallbackResponse = (message: string): string => {
+    const lowerMessage = message.toLowerCase();
+    
+    if (lowerMessage.includes('budget') || lowerMessage.includes('spending')) {
+      return `I can help you with budgeting! Here are some general tips:
+
+📊 **Budget Basics:**
+• Follow the 50/30/20 rule: 50% needs, 30% wants, 20% savings
+• Track all expenses for at least a month
+• Set realistic spending limits for each category
+• Review and adjust monthly
+
+💡 **Quick Tips:**
+• Use envelope budgeting for discretionary spending
+• Automate savings transfers
+• Track subscriptions and recurring payments
+• Compare prices before major purchases
+
+Would you like me to help you with a specific aspect of budgeting?`;
+    }
+    
+    if (lowerMessage.includes('save') || lowerMessage.includes('saving')) {
+      return `Great question about saving! Here's my advice:
+
+💰 **Savings Strategy:**
+• Start with an emergency fund (3-6 months expenses)
+• Pay yourself first - automate transfers
+• Use high-yield savings accounts
+• Set specific savings goals with deadlines
+
+🎯 **Saving Tips:**
+• Save windfalls (tax refunds, bonuses)
+• Use the 24-hour rule for large purchases
+• Find ways to reduce fixed expenses
+• Consider side income opportunities
+
+What specific savings goal would you like to work on?`;
+    }
+    
+    if (lowerMessage.includes('invest') || lowerMessage.includes('investment')) {
+      return `Investment advice coming up! Here are the fundamentals:
+
+📈 **Investment Basics:**
+• Start investing early to benefit from compound interest
+• Diversify across asset classes and sectors
+• Consider your risk tolerance and time horizon
+• Keep fees low with index funds
+
+🔄 **Common Allocations:**
+• Age in bonds rule: (Your age)% in bonds
+• Emergency fund first, then invest
+• 401(k) match is free money - prioritize it
+• Roth IRA for tax-free growth
+
+⚠️ *Note: This is general information, not personalized advice*
+
+What's your investment timeline and risk comfort level?`;
+    }
+    
+    if (lowerMessage.includes('goal') || lowerMessage.includes('planning')) {
+      return `Financial goal setting is crucial! Here's how to approach it:
+
+🎯 **SMART Goals Framework:**
+• **Specific:** Clear, well-defined goals
+• **Measurable:** Track progress with numbers
+• **Achievable:** Realistic given your situation
+• **Relevant:** Aligned with your values
+• **Time-bound:** Set deadlines
+
+📋 **Common Financial Goals:**
+• Emergency fund building
+• Debt payoff
+• Home down payment
+• Retirement planning
+• Vacation or major purchase
+
+🔧 **Action Steps:**
+• Calculate total amount needed
+• Set monthly saving targets
+• Automate contributions
+• Track progress regularly
+
+What financial goal would you like to prioritize?`;
+    }
+    
+    return `I'm here to help with your financial questions! I can assist with:
+
+💼 **Topics I can help with:**
+• Budget planning and expense tracking
+• Savings strategies and goal setting
+• Investment basics and portfolio allocation
+• Debt management and payoff strategies
+• Financial goal planning and achievement
+
+🤖 **AI Features (when available):**
+• Personalized analysis of your spending patterns
+• Custom investment recommendations
+• Anomaly detection in transactions
+• Bill prediction and reminders
+
+Feel free to ask about any of these topics, or tell me about your specific financial situation!`;
+  };
+
   const sendMessage = async () => {
     if (!currentMessage.trim() || isTyping) return;
 
@@ -134,12 +271,13 @@ What would you like to discuss about your finances today?`,
     };
 
     setChatMessages(prev => [...prev, userMessage]);
+    const messageToSend = currentMessage;
     setCurrentMessage('');
     setIsTyping(true);
 
     try {
       const response = await api.post('/ai-advanced/chat', {
-        message: currentMessage,
+        message: messageToSend,
         chatHistory: chatMessages
       });
 
@@ -152,12 +290,15 @@ What would you like to discuss about your finances today?`,
       setChatMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
       console.error('Chat error:', error);
-      const errorMessage: ChatMessage = {
+      
+      // Use intelligent fallback response
+      const fallbackResponse = generateFallbackResponse(messageToSend);
+      const assistantMessage: ChatMessage = {
         role: 'assistant',
-        content: 'I apologize, but I\'m experiencing technical difficulties. Please try again in a moment.',
+        content: fallbackResponse,
         timestamp: new Date()
       };
-      setChatMessages(prev => [...prev, errorMessage]);
+      setChatMessages(prev => [...prev, assistantMessage]);
     } finally {
       setIsTyping(false);
     }
@@ -257,35 +398,54 @@ What would you like to discuss about your finances today?`,
 
       {/* Tab Content */}
       {activeTab === 'chat' && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg h-96 flex flex-col">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 h-96 flex flex-col">
           {/* Chat Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          <div className="flex-1 overflow-y-auto p-6 space-y-4">
             {chatMessages.map((message, index) => (
               <div
                 key={index}
                 className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
-                <div
-                  className={`max-w-3xl p-3 rounded-lg ${
-                    message.role === 'user'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white'
-                  }`}
-                >
-                  <div className="whitespace-pre-wrap">{message.content}</div>
-                  <div className="text-xs opacity-70 mt-1">
-                    {message.timestamp.toLocaleTimeString()}
+                <div className={`flex items-start space-x-3 max-w-3xl ${message.role === 'user' ? 'flex-row-reverse space-x-reverse' : ''}`}>
+                  {/* Avatar */}
+                  <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+                    message.role === 'user' 
+                      ? 'bg-blue-500 text-white' 
+                      : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
+                  }`}>
+                    {message.role === 'user' ? '👤' : '🤖'}
+                  </div>
+                  
+                  {/* Message Bubble */}
+                  <div
+                    className={`p-4 rounded-2xl ${
+                      message.role === 'user'
+                        ? 'bg-blue-500 text-white rounded-tr-md'
+                        : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white rounded-tl-md'
+                    }`}
+                  >
+                    <div className="whitespace-pre-wrap text-sm leading-relaxed">{message.content}</div>
+                    <div className={`text-xs mt-2 ${
+                      message.role === 'user' ? 'text-blue-100' : 'text-gray-500 dark:text-gray-400'
+                    }`}>
+                      {message.timestamp.toLocaleTimeString()}
+                    </div>
                   </div>
                 </div>
               </div>
             ))}
             {isTyping && (
               <div className="flex justify-start">
-                <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
-                  <div className="flex space-x-1">
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                <div className="flex items-start space-x-3 max-w-3xl">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white flex items-center justify-center">
+                    🤖
+                  </div>
+                  <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-2xl rounded-tl-md">
+                    <div className="flex space-x-1">
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -294,16 +454,21 @@ What would you like to discuss about your finances today?`,
           </div>
 
           {/* Chat Input */}
-          <div className="border-t border-gray-200 dark:border-gray-700 p-4">
-            <div className="flex space-x-2">
-              <textarea
-                value={currentMessage}
-                onChange={(e) => setCurrentMessage(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Ask me anything about your finances..."
-                className="flex-1 p-2 border border-gray-300 dark:border-gray-600 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                rows={2}
-              />
+          <div className="border-t border-gray-200 dark:border-gray-700 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-b-2xl">
+            <div className="flex space-x-3">
+              <div className="flex-1 relative">
+                <textarea
+                  value={currentMessage}
+                  onChange={(e) => setCurrentMessage(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="Ask me anything about your finances..."
+                  className="w-full p-3 pr-12 border border-gray-300 dark:border-gray-600 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-200"
+                  rows={2}
+                />
+                <div className="absolute right-3 top-3 text-gray-400">
+                  💬
+                </div>
+              </div>
               <button
                 onClick={sendMessage}
                 disabled={!currentMessage.trim() || isTyping}
